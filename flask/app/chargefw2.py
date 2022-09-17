@@ -2,8 +2,8 @@ import subprocess
 import os
 from collections import Counter, defaultdict
 
-from .method import method_data
-from .config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR, LOG_DIR
+from method import method_data
+from config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR, LOG_DIR
 
 
 def calculate(method_name, parameters_name, source, charge_out_dir):
@@ -12,9 +12,11 @@ def calculate(method_name, parameters_name, source, charge_out_dir):
             '--input-file', source, '--chg-out-dir', charge_out_dir, '--read-hetatm', '--log-file', logfile,
             '--permissive-types']
     if next(m for m in method_data if m['internal_name'] == method_name)['has_parameters']:
-        args.extend(['--par-file', os.path.join(PARAMETERS_DIRECTORY, parameters_name)])
+        args.extend(
+            ['--par-file', os.path.join(PARAMETERS_DIRECTORY, parameters_name)])
 
-    calculation = subprocess.run(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    calculation = subprocess.run(
+        args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     print(' '.join(calculation.args))
     return calculation
 
@@ -26,7 +28,8 @@ def get_suitable_methods(directory: str):
 
         args = [os.path.join(CHARGEFW2_DIR, 'bin', 'chargefw2'), '--mode', 'suitable-methods', '--read-hetatm',
                 '--permissive-types', '--input-file', fullname]
-        calculation = subprocess.run(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        calculation = subprocess.run(
+            args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         print(' '.join(calculation.args))
         if calculation.returncode:
             output = calculation.stderr.decode('utf-8').strip()

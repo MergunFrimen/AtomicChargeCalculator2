@@ -2,7 +2,7 @@ import os
 import json
 from collections import defaultdict
 
-from .config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR
+from config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR
 
 
 with open(os.path.join(CHARGEFW2_DIR, 'share', 'methods.json')) as f:
@@ -17,4 +17,5 @@ for parameters in sorted(os.listdir(PARAMETERS_DIRECTORY)):
         name = p_data['metadata']['name']
         method = p_data['metadata']['method']
         publication = p_data['metadata']['publication']
-        parameter_data[method].append({'name': name, 'publication': publication, 'filename': parameters})
+        parameter_data[method].append(
+            {'name': name, 'publication': publication, 'filename': parameters})

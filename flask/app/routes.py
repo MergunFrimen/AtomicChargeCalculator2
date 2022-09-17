@@ -1,5 +1,5 @@
 from flask import render_template, flash, request, send_from_directory, redirect, url_for, Response, abort
-from . import application, config
+from app import app, config
 from typing import Dict, IO
 
 import tempfile
@@ -9,10 +9,10 @@ import os
 import zipfile
 from glob import glob
 
-from .files import convert_to_mmcif, prepare_file
-from .method import method_data, parameter_data
-from .chargefw2 import calculate, get_suitable_methods
-from .parser import *
+from files import convert_to_mmcif, prepare_file
+from method import method_data, parameter_data
+from chargefw2 import calculate, get_suitable_methods
+from parser import *
 
 request_data = {}
 
@@ -29,11 +29,13 @@ def prepare_example(rq, tmp_dir):
         filename = '2k7w_updated.cif'
     else:
         raise RuntimeError('Unknown example selected')
-    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename), os.path.join(tmp_dir, 'input', filename))
+    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename),
+                os.path.join(tmp_dir, 'input', filename))
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
-    charges, structures, formats, logs = calculate_charges(method_name, parameters_name, tmp_dir)
+    charges, structures, formats, logs = calculate_charges(
+        method_name, parameters_name, tmp_dir)
     request_data[comp_id].update({'method': method_name,
                                   'parameters': parameters_name,
                                   'structures': structures,
@@ -43,7 +45,8 @@ def update_computation_results(method_name: str, parameters_name: str, tmp_dir: 
 
 
 def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
-    method_name = next(method['internal_name'] for method in method_data if method['internal_name'] in methods)
+    method_name = next(method['internal_name']
+                       for method in method_data if method['internal_name'] in methods)
 
     if method_name in parameters:
         parameters_name = parameters[method_name][0]
@@ -56,7 +59,7 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
     return redirect(url_for('results', r=comp_id))
 
 
-@application.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def main_site():
     if request.method == 'POST':
         tmp_dir = tempfile.mkdtemp(prefix='compute_')
@@ -81,7 +84,8 @@ def main_site():
             flash(f'Error: {e}', 'error')
             return render_template('index.html')
 
-        request_data[comp_id] = {'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
+        request_data[comp_id] = {
+            'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
 
         if request.form['type'] in ['charges', 'example']:
             return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
@@ -91,7 +95,7 @@ def main_site():
         return render_template('index.html')
 
 
-@application.route('/setup', methods=['GET', 'POST'])
+@app.route('/setup', methods=['GET', 'POST'])
 def setup():
     comp_id = request.args.get('r')
     try:
@@ -106,7 +110,8 @@ def setup():
         method_name = request.form.get('method_select')
         parameters_name = request.form.get('parameters_select')
 
-        update_computation_results(method_name, parameters_name, tmp_dir, comp_id)
+        update_computation_results(
+            method_name, parameters_name, tmp_dir, comp_id)
 
         return redirect(url_for('results', r=comp_id))
 
@@ -172,7 +177,7 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
     return charges, structures, formats, logs
 
 
-@application.route('/results')
+@app.route('/results')
 def results():
     comp_id = request.args.get('r')
     try:
@@ -189,7 +194,8 @@ def results():
                 _, parameters_name = line.split(' ', 1)
                 break
 
-    method_name = next(m for m in method_data if m['internal_name'] == comp_data['method'])['name']
+    method_name = next(
+        m for m in method_data if m['internal_name'] == comp_data['method'])['name']
 
     chg_range = {}
     for struct, charges in comp_data['charges'].items():
@@ -204,7 +210,7 @@ def results():
                            structures=comp_data['structures'].keys(), chg_range=chg_range, logs=logs)
 
 
-@application.route('/download')
+@app.route('/download')
 def download_charges():
     comp_id = request.args.get('r')
     comp_data = request_data[comp_id]
@@ -219,7 +225,7 @@ def download_charges():
                                cache_timeout=0)
 
 
-@application.route('/structure')
+@app.route('/structure')
 def get_structure():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -228,7 +234,7 @@ def get_structure():
     return Response(comp_data['structures'][structure_id], mimetype='text/plain')
 
 
-@application.route('/format')
+@app.route('/format')
 def get_format():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -236,7 +242,7 @@ def get_format():
     return Response(comp_data['formats'][structure_id], mimetype='text/plain')
 
 
-@application.route('/charges')
+@app.route('/charges')
 def get_charges():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -248,7 +254,7 @@ def get_charges():
         return Response('---No charges---', mimetype='text/plain')
 
 
-@application.route('/logs')
+@app.route('/logs')
 def get_logs():
     comp_id = request.args.get('r')
     comp_data = request_data[comp_id]
@@ -256,6 +262,6 @@ def get_logs():
     return Response(comp_data['logs']['stderr'], mimetype='text/plain')
 
 
-@application.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
