@@ -2,11 +2,12 @@ import os
 import subprocess
 import magic
 import shutil
+
 from typing import Dict, IO
 from werkzeug.utils import secure_filename
 
 
-from parser import parse_cif_from_string
+from .parser import parse_cif_from_string
 
 ALLOWED_INPUT_EXTENSION = {'.sdf', '.mol2', '.pdb', '.cif'}
 

@@ -2,8 +2,8 @@ import subprocess
 import os
 from collections import Counter, defaultdict
 
-from method import method_data
-from config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR, LOG_DIR
+from .method import method_data
+from .config import PARAMETERS_DIRECTORY, CHARGEFW2_DIR, LOG_DIR
 
 
 def calculate(method_name, parameters_name, source, charge_out_dir):

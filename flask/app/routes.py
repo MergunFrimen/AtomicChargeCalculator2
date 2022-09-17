@@ -1,19 +1,18 @@
 from flask import render_template, flash, request, send_from_directory, redirect, url_for, Response, abort
+from . import application, config
 from typing import Dict, IO
 
+import tempfile
+import uuid
+import shutil
 import os
 import zipfile
-from tempfile import mkdtemp
-from uuid import uuid1
-from shutil import copy
 from glob import glob
 
-from config import EXAMPLES_DIR
-from app import app
-from files import convert_to_mmcif, prepare_file
-from method import method_data, parameter_data
-from chargefw2 import calculate, get_suitable_methods
-from parser import *
+from .files import convert_to_mmcif, prepare_file
+from .method import method_data, parameter_data
+from .chargefw2 import calculate, get_suitable_methods
+from .parser import *
 
 request_data = {}
 
@@ -30,8 +29,8 @@ def prepare_example(rq, tmp_dir):
         filename = '2k7w_updated.cif'
     else:
         raise RuntimeError('Unknown example selected')
-    copy(os.path.join(config.EXAMPLES_DIR, filename),
-         os.path.join(tmp_dir, 'input', filename))
+    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename),
+                os.path.join(tmp_dir, 'input', filename))
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
@@ -60,42 +59,43 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
     return redirect(url_for('results', r=comp_id))
 
 
-@app.route('/', methods=['GET', 'POST'])
+@application.route('/', methods=['GET', 'POST'])
 def main_site():
-    if request.method == 'GET':
-        return render_template('index.html')
+    if request.method == 'POST':
+        tmp_dir = tempfile.mkdtemp(prefix='compute_')
+        os.mkdir(os.path.join(tmp_dir, 'input'))
+        os.mkdir(os.path.join(tmp_dir, 'output'))
+        os.mkdir(os.path.join(tmp_dir, 'logs'))
 
-    tmp_dir = mkdtemp(prefix='compute_')
-    os.mkdir(os.path.join(tmp_dir, 'input'))
-    os.mkdir(os.path.join(tmp_dir, 'output'))
-    os.mkdir(os.path.join(tmp_dir, 'logs'))
+        if request.form['type'] in ['settings', 'charges']:
+            if not prepare_file(request, tmp_dir):
+                flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
+                      ' and zip or tar.gz of those.', 'error')
+                return render_template('index.html')
+        elif request.form['type'] == 'example':
+            prepare_example(request, tmp_dir)
+        else:
+            raise RuntimeError('Bad type of input')
 
-    if request.form['type'] in ['settings', 'charges']:
-        if not prepare_file(request, tmp_dir):
-            flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
-                  ' and zip or tar.gz of those.', 'error')
+        comp_id = str(uuid.uuid1())
+        try:
+            methods, parameters = get_suitable_methods(tmp_dir)
+        except RuntimeError as e:
+            flash(f'Error: {e}', 'error')
             return render_template('index.html')
-    elif request.form['type'] == 'example':
-        prepare_example(request, tmp_dir)
-    else:
-        raise RuntimeError('Bad type of input')
 
-    comp_id = str(uuid1())
-    try:
-        methods, parameters = get_suitable_methods(tmp_dir)
-    except RuntimeError as e:
-        flash(f'Error: {e}', 'error')
+        request_data[comp_id] = {
+            'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
+
+        if request.form['type'] in ['charges', 'example']:
+            return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
+        else:
+            return redirect(url_for('setup', r=comp_id))
+    else:
         return render_template('index.html')
 
-    request_data[comp_id] = {
-        'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
 
-    if request.form['type'] in ['charges', 'example']:
-        return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
-    return redirect(url_for('setup', r=comp_id))
-
-
-@app.route('/setup', methods=['GET', 'POST'])
+@application.route('/setup', methods=['GET', 'POST'])
 def setup():
     comp_id = request.args.get('r')
     try:
@@ -177,7 +177,7 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
     return charges, structures, formats, logs
 
 
-@app.route('/results')
+@application.route('/results')
 def results():
     comp_id = request.args.get('r')
     try:
@@ -210,7 +210,7 @@ def results():
                            structures=comp_data['structures'].keys(), chg_range=chg_range, logs=logs)
 
 
-@app.route('/download')
+@application.route('/download')
 def download_charges():
     comp_id = request.args.get('r')
     comp_data = request_data[comp_id]
@@ -225,7 +225,7 @@ def download_charges():
                                cache_timeout=0)
 
 
-@app.route('/structure')
+@application.route('/structure')
 def get_structure():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -234,7 +234,7 @@ def get_structure():
     return Response(comp_data['structures'][structure_id], mimetype='text/plain')
 
 
-@app.route('/format')
+@application.route('/format')
 def get_format():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -242,7 +242,7 @@ def get_format():
     return Response(comp_data['formats'][structure_id], mimetype='text/plain')
 
 
-@app.route('/charges')
+@application.route('/charges')
 def get_charges():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
@@ -254,7 +254,7 @@ def get_charges():
         return Response('---No charges---', mimetype='text/plain')
 
 
-@app.route('/logs')
+@application.route('/logs')
 def get_logs():
     comp_id = request.args.get('r')
     comp_data = request_data[comp_id]
@@ -262,6 +262,6 @@ def get_logs():
     return Response(comp_data['logs']['stderr'], mimetype='text/plain')
 
 
-@app.errorhandler(404)
+@application.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
