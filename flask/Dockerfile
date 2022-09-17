@@ -15,7 +15,7 @@ RUN apt-get install -y git build-essential cmake ninja-build wget \
         lsb-release software-properties-common libomp-dev \
         libgtest-dev libeigen3-dev libboost-all-dev \
         libfmt-dev nlohmann-json3-dev python3-pybind11 \
-        python3-dev python3-pip clang
+        python3-dev python3-pip clang dos2unix
 
 RUN git clone --depth 1 --branch v1.3.2 https://github.com/jlblancoc/nanoflann.git && \
     cd nanoflann && mkdir build && cd build && \
