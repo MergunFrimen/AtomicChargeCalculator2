@@ -7,7 +7,7 @@ services:
     container_name: app
     restart: always
     environment:
-      - APP_NAME=acc2
+      - APP_NAME=ACC2
     expose:
       - 8080
 

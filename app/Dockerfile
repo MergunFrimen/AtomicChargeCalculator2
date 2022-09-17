@@ -35,9 +35,9 @@ RUN git clone --depth 1 https://github.com/MergunFrimen/ChargeFW2.git && \
 
 ENV PYTHONPATH=/usr/local/lib
 
-WORKDIR /home/charge/flask
+WORKDIR /home/charge/www/ACC2
 
-ADD . /home/charge/flask
+ADD . /home/charge/www/ACC2
 
 RUN pip install -r requirements.txt
 
