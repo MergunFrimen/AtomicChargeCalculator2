@@ -1,9 +1,11 @@
 import string
 import os
+
 from typing import IO, Dict, Iterable
 
 
-__all__ = ['parse_txt', 'parse_cif', 'parse_cif_from_string', 'parse_pdb', 'parse_sdf', 'get_MOL_versions']
+__all__ = ['parse_txt', 'parse_cif', 'parse_cif_from_string',
+           'parse_pdb', 'parse_sdf', 'get_MOL_versions']
 
 
 def sanitize_name(name: str) -> str:

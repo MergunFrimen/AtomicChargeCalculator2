@@ -29,11 +29,13 @@ def prepare_example(rq, tmp_dir):
         filename = '2k7w_updated.cif'
     else:
         raise RuntimeError('Unknown example selected')
-    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename), os.path.join(tmp_dir, 'input', filename))
+    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename),
+                os.path.join(tmp_dir, 'input', filename))
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
-    charges, structures, formats, logs = calculate_charges(method_name, parameters_name, tmp_dir)
+    charges, structures, formats, logs = calculate_charges(
+        method_name, parameters_name, tmp_dir)
     request_data[comp_id].update({'method': method_name,
                                   'parameters': parameters_name,
                                   'structures': structures,
@@ -43,7 +45,8 @@ def update_computation_results(method_name: str, parameters_name: str, tmp_dir: 
 
 
 def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
-    method_name = next(method['internal_name'] for method in method_data if method['internal_name'] in methods)
+    method_name = next(method['internal_name']
+                       for method in method_data if method['internal_name'] in methods)
 
     if method_name in parameters:
         parameters_name = parameters[method_name][0]
@@ -81,7 +84,8 @@ def main_site():
             flash(f'Error: {e}', 'error')
             return render_template('index.html')
 
-        request_data[comp_id] = {'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
+        request_data[comp_id] = {
+            'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
 
         if request.form['type'] in ['charges', 'example']:
             return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
@@ -106,7 +110,8 @@ def setup():
         method_name = request.form.get('method_select')
         parameters_name = request.form.get('parameters_select')
 
-        update_computation_results(method_name, parameters_name, tmp_dir, comp_id)
+        update_computation_results(
+            method_name, parameters_name, tmp_dir, comp_id)
 
         return redirect(url_for('results', r=comp_id))
 
@@ -189,7 +194,8 @@ def results():
                 _, parameters_name = line.split(' ', 1)
                 break
 
-    method_name = next(m for m in method_data if m['internal_name'] == comp_data['method'])['name']
+    method_name = next(
+        m for m in method_data if m['internal_name'] == comp_data['method'])['name']
 
     chg_range = {}
     for struct, charges in comp_data['charges'].items():

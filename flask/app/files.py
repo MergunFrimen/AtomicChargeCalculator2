@@ -2,6 +2,7 @@ import os
 import subprocess
 import magic
 import shutil
+
 from typing import Dict, IO
 from werkzeug.utils import secure_filename
 
@@ -18,7 +19,8 @@ def check_extension(filename: str):
 
 
 def extract(tmp_dir: str, filename: str, fmt: str):
-    shutil.unpack_archive(os.path.join(tmp_dir, filename), os.path.join(tmp_dir, 'input'), format=fmt)
+    shutil.unpack_archive(os.path.join(tmp_dir, filename),
+                          os.path.join(tmp_dir, 'input'), format=fmt)
     for filename in os.listdir(os.path.join(tmp_dir, 'input')):
         check_extension(filename)
 
@@ -27,7 +29,8 @@ def convert_to_mmcif(f: IO[str], fmt: str, filename: str) -> Dict[str, str]:
     input_arg = f'-i{fmt}'
     args = ['obabel', input_arg, '-ommcif']
     data = f.read()
-    run = subprocess.run(args, input=data.encode('utf-8'), stdout=subprocess.PIPE)
+    run = subprocess.run(args, input=data.encode(
+        'utf-8'), stdout=subprocess.PIPE)
     output = run.stdout.decode('utf-8')
     structures: Dict[str, str] = {}
     delimiter = '# --------------------------------------------------------------------------'
@@ -47,7 +50,8 @@ def prepare_file(rq, tmp_dir):
     try:
         if filetype in ['text/plain', 'chemical/x-pdb']:
             check_extension(filename)
-            shutil.copy(os.path.join(tmp_dir, filename), os.path.join(tmp_dir, 'input'))
+            shutil.copy(os.path.join(tmp_dir, filename),
+                        os.path.join(tmp_dir, 'input'))
         elif filetype == 'application/zip':
             extract(tmp_dir, filename, 'zip')
         elif filetype == 'application/x-gzip':
