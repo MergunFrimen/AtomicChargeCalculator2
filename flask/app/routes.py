@@ -1,14 +1,15 @@
 from flask import render_template, flash, request, send_from_directory, redirect, url_for, Response, abort
-from app import app, config
 from typing import Dict, IO
 
-import tempfile
-import uuid
-import shutil
 import os
 import zipfile
+from tempfile import mkdtemp
+from uuid import uuid1
+from shutil import copy
 from glob import glob
 
+from config import EXAMPLES_DIR
+from app import app
 from files import convert_to_mmcif, prepare_file
 from method import method_data, parameter_data
 from chargefw2 import calculate, get_suitable_methods
@@ -29,8 +30,8 @@ def prepare_example(rq, tmp_dir):
         filename = '2k7w_updated.cif'
     else:
         raise RuntimeError('Unknown example selected')
-    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename),
-                os.path.join(tmp_dir, 'input', filename))
+    copy(os.path.join(config.EXAMPLES_DIR, filename),
+         os.path.join(tmp_dir, 'input', filename))
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
@@ -61,38 +62,37 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def main_site():
-    if request.method == 'POST':
-        tmp_dir = tempfile.mkdtemp(prefix='compute_')
-        os.mkdir(os.path.join(tmp_dir, 'input'))
-        os.mkdir(os.path.join(tmp_dir, 'output'))
-        os.mkdir(os.path.join(tmp_dir, 'logs'))
-
-        if request.form['type'] in ['settings', 'charges']:
-            if not prepare_file(request, tmp_dir):
-                flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
-                      ' and zip or tar.gz of those.', 'error')
-                return render_template('index.html')
-        elif request.form['type'] == 'example':
-            prepare_example(request, tmp_dir)
-        else:
-            raise RuntimeError('Bad type of input')
-
-        comp_id = str(uuid.uuid1())
-        try:
-            methods, parameters = get_suitable_methods(tmp_dir)
-        except RuntimeError as e:
-            flash(f'Error: {e}', 'error')
-            return render_template('index.html')
-
-        request_data[comp_id] = {
-            'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
-
-        if request.form['type'] in ['charges', 'example']:
-            return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
-        else:
-            return redirect(url_for('setup', r=comp_id))
-    else:
+    if request.method == 'GET':
         return render_template('index.html')
+
+    tmp_dir = mkdtemp(prefix='compute_')
+    os.mkdir(os.path.join(tmp_dir, 'input'))
+    os.mkdir(os.path.join(tmp_dir, 'output'))
+    os.mkdir(os.path.join(tmp_dir, 'logs'))
+
+    if request.form['type'] in ['settings', 'charges']:
+        if not prepare_file(request, tmp_dir):
+            flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
+                  ' and zip or tar.gz of those.', 'error')
+            return render_template('index.html')
+    elif request.form['type'] == 'example':
+        prepare_example(request, tmp_dir)
+    else:
+        raise RuntimeError('Bad type of input')
+
+    comp_id = str(uuid1())
+    try:
+        methods, parameters = get_suitable_methods(tmp_dir)
+    except RuntimeError as e:
+        flash(f'Error: {e}', 'error')
+        return render_template('index.html')
+
+    request_data[comp_id] = {
+        'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
+
+    if request.form['type'] in ['charges', 'example']:
+        return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
+    return redirect(url_for('setup', r=comp_id))
 
 
 @app.route('/setup', methods=['GET', 'POST'])
