@@ -38,7 +38,10 @@ RUN git clone --depth 1 https://github.com/MergunFrimen/ChargeFW2.git && \
         -DCMAKE_BUILD_TYPE=Release && \
     ninja && ninja install
 
-# TODO: add litemol viewer integration
+# install litemol
+RUN wget http://yavanna.ncbr.muni.cz:9877/share/litemol.tar.gz && \
+    mkdir -p /home/charge/flask/app/static/litemol && \
+    tar xvzf litemol.tar.gz -C /home/charge/flask/app/static/litemol
 
 FROM build AS prod
 
@@ -46,8 +49,8 @@ FROM build AS prod
 
 WORKDIR /home/charge/flask
 
-# copy all the files to the container
-COPY --chown=nonroot:nonroot . .
+# copy all the files to the container; copy over litemol
+COPY . .
 
 # install python runtime dependencies
 RUN pip install -r requirements.txt
