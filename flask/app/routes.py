@@ -220,8 +220,8 @@ def download_charges():
         for file in os.listdir(os.path.join(tmpdir, 'output')):
             f.write(os.path.join(tmpdir, 'output', file), arcname=file)
 
-    return send_from_directory(tmpdir, 'charges.zip', as_attachment=True, attachment_filename=f'{method}_charges.zip',
-                               cache_timeout=0)
+    return send_from_directory(tmpdir, 'charges.zip', as_attachment=True, download_name=f'{method}_charges.zip',
+                               max_age=0)
 
 
 @application.route('/structure')
