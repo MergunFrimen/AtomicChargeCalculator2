@@ -59,66 +59,6 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
     return redirect(url_for('results', r=comp_id))
 
 
-@application.route('/', methods=['GET', 'POST'])
-def main_site():
-    if request.method == 'POST':
-        tmp_dir = tempfile.mkdtemp(prefix='compute_')
-        os.mkdir(os.path.join(tmp_dir, 'input'))
-        os.mkdir(os.path.join(tmp_dir, 'output'))
-        os.mkdir(os.path.join(tmp_dir, 'logs'))
-
-        if request.form['type'] in ['settings', 'charges']:
-            if not prepare_file(request, tmp_dir):
-                flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
-                      ' and zip or tar.gz of those.', 'error')
-                return render_template('index.html')
-        elif request.form['type'] == 'example':
-            prepare_example(request, tmp_dir)
-        else:
-            raise RuntimeError('Bad type of input')
-
-        comp_id = str(uuid.uuid1())
-        try:
-            methods, parameters = get_suitable_methods(tmp_dir)
-        except RuntimeError as e:
-            flash(f'Error: {e}', 'error')
-            return render_template('index.html')
-
-        request_data[comp_id] = {
-            'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
-
-        if request.form['type'] in ['charges', 'example']:
-            return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
-        else:
-            return redirect(url_for('setup', r=comp_id))
-    else:
-        return render_template('index.html')
-
-
-@application.route('/setup', methods=['GET', 'POST'])
-def setup():
-    comp_id = request.args.get('r')
-    try:
-        tmp_dir = request_data[comp_id]['tmpdir']
-    except KeyError:
-        abort(404)
-
-    suitable_methods = request_data[comp_id]['suitable_methods']
-    suitable_parameters = request_data[comp_id]['suitable_parameters']
-
-    if request.method == 'POST':
-        method_name = request.form.get('method_select')
-        parameters_name = request.form.get('parameters_select')
-
-        update_computation_results(
-            method_name, parameters_name, tmp_dir, comp_id)
-
-        return redirect(url_for('results', r=comp_id))
-
-    return render_template('setup.html', methods=method_data, parameters=parameter_data,
-                           suitable_methods=suitable_methods, suitable_parameters=suitable_parameters)
-
-
 def calculate_charges(method_name, parameters_name, tmp_dir):
     structures: Dict[str, str] = {}
     charges: Dict[str, str] = {}
@@ -175,6 +115,65 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
         with open(os.path.join(tmp_dir, 'output', f'{file}.txt')) as f:
             charges.update(parse_txt(f))
     return charges, structures, formats, logs
+
+
+@application.route('/', methods=['GET', 'POST'])
+def main_site():
+    if request.method == 'GET':
+        return render_template('index.html')
+
+    tmp_dir = tempfile.mkdtemp(prefix='compute_')
+    os.mkdir(os.path.join(tmp_dir, 'input'))
+    os.mkdir(os.path.join(tmp_dir, 'output'))
+    os.mkdir(os.path.join(tmp_dir, 'logs'))
+
+    if request.form['type'] in ['settings', 'charges']:
+        if not prepare_file(request, tmp_dir):
+            flash('Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif'
+                  ' and zip or tar.gz of those.', 'error')
+            return render_template('index.html')
+    elif request.form['type'] == 'example':
+        prepare_example(request, tmp_dir)
+    else:
+        raise RuntimeError('Bad type of input')
+
+    comp_id = str(uuid.uuid1())
+    try:
+        methods, parameters = get_suitable_methods(tmp_dir)
+    except RuntimeError as e:
+        flash(f'Error: {e}', 'error')
+        return render_template('index.html')
+
+    request_data[comp_id] = {
+        'tmpdir': tmp_dir, 'suitable_methods': methods, 'suitable_parameters': parameters}
+
+    if request.form['type'] in ['charges', 'example']:
+        return calculate_charges_default(methods, parameters, tmp_dir, comp_id)
+    return redirect(url_for('setup', r=comp_id))
+
+
+@application.route('/setup', methods=['GET', 'POST'])
+def setup():
+    comp_id = request.args.get('r')
+    try:
+        tmp_dir = request_data[comp_id]['tmpdir']
+    except KeyError:
+        abort(404)
+
+    suitable_methods = request_data[comp_id]['suitable_methods']
+    suitable_parameters = request_data[comp_id]['suitable_parameters']
+
+    if request.method == 'POST':
+        method_name = request.form.get('method_select')
+        parameters_name = request.form.get('parameters_select')
+
+        update_computation_results(
+            method_name, parameters_name, tmp_dir, comp_id)
+
+        return redirect(url_for('results', r=comp_id))
+
+    return render_template('setup.html', methods=method_data, parameters=parameter_data,
+                           suitable_methods=suitable_methods, suitable_parameters=suitable_parameters)
 
 
 @application.route('/results')
