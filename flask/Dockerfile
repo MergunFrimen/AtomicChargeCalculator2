@@ -49,10 +49,11 @@ FROM build AS prod
 
 WORKDIR /home/charge/flask
 
+# install python runtime dependencies
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
 # copy all the files to the container; copy over litemol
 COPY . .
-
-# install python runtime dependencies
-RUN pip install -r requirements.txt
 
 CMD ["uwsgi", "app.ini"]
