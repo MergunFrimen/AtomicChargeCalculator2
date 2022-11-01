@@ -177,12 +177,12 @@ async function init_results() {
     let $min_value = $('#min_value');
     let $max_value = $('#max_value');
 
-    await BasicMolStarWrapper.init('root');
+    await ACC2Viewer.init('root');
 
     $select.on('changed.bs.select', async () => {
         const id = $select.val();
         const url = 'http://localhost' + get_structure_url + `&s=${id}`;
-        await BasicMolStarWrapper.load({ url: url });
+        await ACC2Viewer.load({ url: url });
         // $.ajax({
         //     url: get_format_url + `&s=${id}`,
         //     success: function (format) {
@@ -215,7 +215,7 @@ async function init_results() {
 
     $('#min_value, #max_value').on('input', function () {
         // update_litemol_colors(parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
-        BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+        ACC2Viewer.coloring.partialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
         $min_value.attr('max', $max_value.val());
         $max_value.attr('min', $min_value.val());
     });
@@ -230,19 +230,18 @@ async function init_results() {
             $max_value.val(chg_range[id]);
             
             // update_litemol_colors(null, null);
-            BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+            ACC2Viewer.coloring.partialCharges(false, 0, 0);
             $min_value.prop('disabled', true);
             $max_value.prop('disabled', true);
         } else if (coloring === 'Absolute') {
             // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
-            BasicMolStarWrapper.coloring.applyPartialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+            // ACC2Viewer.coloring.partialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
             $min_value.prop('disabled', false);
             $max_value.prop('disabled', false);
             $min_value.trigger('input');
         } else {
             /* Coloring by elements */
-            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: true});
-            BasicMolStarWrapper.coloring.applyElementSymbol();
+            ACC2Viewer.coloring.default();
         }
     });
 
