@@ -79,13 +79,17 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
             logs['stderr'] = stderr
         if res.returncode:
             flash('Computation failed. See logs for details.', 'error')
-
-        with open(os.path.join(tmp_dir, 'output', file + '.txt')) as f:
-            charges.update(parse_txt(f))
     
+    # prep all charges for molstar
+    for file in os.listdir(os.path.join(tmp_dir, 'output')):
+        if file[-4:] != '.txt':
+            continue            
+        with open(os.path.join(tmp_dir, 'output', file)) as f:
+            charges.update(parse_txt(f, tmp_dir))
+
     # prep all structures for molstar
     for file in os.listdir(os.path.join(tmp_dir, 'output')):
-        if ".default.cif" not in file:
+        if file[-12:] != ".default.cif":
             continue
         with open(os.path.join(tmp_dir, 'output', file)) as f:
             structures.update(parse_cif(f))
