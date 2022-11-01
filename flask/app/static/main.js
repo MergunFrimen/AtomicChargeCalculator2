@@ -181,7 +181,8 @@ async function init_results() {
 
     $select.on('changed.bs.select', function () {
         const id = $select.val();
-        BasicMolStarWrapper.load(get_format_url + `&s=${id}`);
+        console.log(get_structure_url + `&s=${id}`);
+        BasicMolStarWrapper.load(get_structure_url + `&s=${id}`);
         // $.ajax({
         //     url: get_format_url + `&s=${id}`,
         //     success: function (format) {
@@ -224,12 +225,12 @@ async function init_results() {
         let coloring = $('input[name=colors]:checked').val();
         if (coloring === 'Relative') {
             // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
-            BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
             const id = $select.val();
             $min_value.val(-chg_range[id]);
             $max_value.val(chg_range[id]);
-
-            update_litemol_colors(null, null);
+            
+            // update_litemol_colors(null, null);
+            BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
             $min_value.prop('disabled', true);
             $max_value.prop('disabled', true);
         } else if (coloring === 'Absolute') {
