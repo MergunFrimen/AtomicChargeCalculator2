@@ -17,7 +17,7 @@ RUN apt-get install -y git build-essential cmake ninja-build wget \
         lsb-release software-properties-common libomp-dev \
         libgtest-dev libeigen3-dev libboost-all-dev \
         libfmt-dev nlohmann-json3-dev python3-pybind11 \
-        python3-dev python3-pip clang dos2unix
+        python3-dev python3-pip clang dos2unix npm
 
 # install nanoflann
 RUN git clone --depth 1 --branch v1.3.2 https://github.com/jlblancoc/nanoflann.git && \
@@ -38,10 +38,12 @@ RUN git clone --depth 1 https://github.com/MergunFrimen/ChargeFW2.git && \
         -DCMAKE_BUILD_TYPE=Release && \
     ninja && ninja install
 
-# install litemol
-RUN wget http://yavanna.ncbr.muni.cz:9877/share/litemol.tar.gz && \
-    mkdir -p /home/charge/flask/app/static/litemol && \
-    tar xvzf litemol.tar.gz -C /home/charge/flask/app/static/litemol
+# install molstar
+# RUN git clone --depth 1 https://github.com/MergunFrimen/molstar.git && \
+#     cd molstar && git checkout master && \
+#     npm install && npm run build && \
+#     mkdir -p /home/charge/flask/app/static/molstar && \
+#     mv build/examples/basic-wrapper /home/charge/flask/app/static/molstar
 
 FROM build AS prod
 
