@@ -181,8 +181,9 @@ async function init_results() {
 
     $select.on('changed.bs.select', async () => {
         const id = $select.val();
-        console.log(get_structure_url + `&s=${id}`);
-        await BasicMolStarWrapper.load(get_structure_url + `&s=${id}`);
+        const url = 'http://localhost/' + get_structure_url + `&s=${id}`;
+        console.log(url);
+        await BasicMolStarWrapper.load(url);
         // $.ajax({
         //     url: get_format_url + `&s=${id}`,
         //     success: function (format) {
