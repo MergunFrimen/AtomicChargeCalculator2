@@ -29,19 +29,22 @@ def parse_cif(f: IO[str]) -> Dict[str, str]:
     return {f'{filename}:{sanitize_name(name)}': record}
 
 
-def parse_txt(f: IO[str]) -> Dict[str, str]:
-    d = {}
-    filename = os.path.basename(f.name)
-    base, _ = os.path.splitext(filename)
+def parse_txt(f: IO[str], tmp_dir) -> Dict[str, str]:
+    charges = {}
     it = iter(f)
     try:
         while it:
-            name = next(it).strip()
-            values = next(it)
-            safe_name = sanitize_name(name)
-            unique_name = get_unique_name(f'{base}:{safe_name}', d.keys())
-            d[unique_name] = f'{name}\n' + values
+            molecule_name = sanitize_name(next(it).strip())
+            charge_values = next(it)
+            output_filename = molecule_name.lower() + ".default.cif"
+            unique_name = get_unique_name(f'{output_filename}:{molecule_name}', charges.keys())
+            if check_structure_exists(output_filename, tmp_dir):
+                charges[unique_name] = f'{molecule_name}\n' + charge_values
     except StopIteration:
         pass
 
-    return d
+    return charges
+
+
+def check_structure_exists(output_filename, tmp_dir):
+    return output_filename in os.listdir(os.path.join(tmp_dir, 'output'))
