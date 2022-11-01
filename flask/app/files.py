@@ -34,7 +34,8 @@ def convert_to_mmcif(f: IO[str], fmt: str, filename: str) -> Dict[str, str]:
     output = run.stdout.decode('utf-8')
     structures: Dict[str, str] = {}
     delimiter = '# --------------------------------------------------------------------------'
-    for s in (s for s in output.split(delimiter) if s):
+    # ignore empty
+    for s in filter(lambda x: x, output.split(delimiter)):
         structures.update(parse_cif_from_string(s, filename))
 
     return structures
