@@ -34,12 +34,11 @@ def prepare_example(rq, tmp_dir):
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
-    charges, structures, formats, logs = calculate_charges(
+    charges, structures, logs = calculate_charges(
         method_name, parameters_name, tmp_dir)
     request_data[comp_id].update({'method': method_name,
                                   'parameters': parameters_name,
                                   'structures': structures,
-                                  'formats': formats,
                                   'charges': charges,
                                   'logs': logs})
 
@@ -62,59 +61,48 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
 def calculate_charges(method_name, parameters_name, tmp_dir):
     structures: Dict[str, str] = {}
     charges: Dict[str, str] = {}
-    formats: Dict[str, str] = {}
     logs: Dict[str, str] = {}
 
     for file in os.listdir(os.path.join(tmp_dir, 'input')):
         res = calculate(method_name, parameters_name, os.path.join(tmp_dir, 'input', file),
                         os.path.join(tmp_dir, 'output'))
 
+        stdout = res.stdout.decode('utf-8')
         stderr = res.stderr.decode('utf-8')
 
         with open(os.path.join(tmp_dir, 'logs', f'{file}.stdout'), 'w') as f_stdout:
-            f_stdout.write(res.stdout.decode('utf-8'))
-
+            f_stdout.write(stdout)
         with open(os.path.join(tmp_dir, 'logs', f'{file}.stderr'), 'w') as f_stderr:
             f_stderr.write(stderr)
 
         if stderr.strip():
             logs['stderr'] = stderr
-
         if res.returncode:
             flash('Computation failed. See logs for details.', 'error')
 
-        _, ext = os.path.splitext(file)
-        ext = ext.lower()
+        ext = os.path.splitext(file)[1].lower()
 
         tmp_structures: Dict[str, str] = {}
         with open(os.path.join(tmp_dir, 'input', file)) as f:
             if ext == '.sdf':
                 if get_MOL_versions(os.path.join(tmp_dir, 'input', file)) == {'V2000'}:
                     tmp_structures.update(parse_sdf(f))
-                    fmt = 'SDF'
                 else:
                     tmp_structures.update(convert_to_mmcif(f, 'sdf', file))
-                    fmt = 'mmCIF'
             elif ext == '.mol2':
                 tmp_structures.update(convert_to_mmcif(f, 'mol2', file))
-                fmt = 'mmCIF'
             elif ext == '.pdb':
                 tmp_structures.update(parse_pdb(f))
-                fmt = 'PDB'
             elif ext == '.cif':
                 tmp_structures.update(parse_cif(f))
-                fmt = 'mmCIF'
             else:
                 raise RuntimeError(f'Not supported format: {ext}')
-
-        for s in tmp_structures:
-            formats[s] = fmt
-
         structures.update(tmp_structures)
 
         with open(os.path.join(tmp_dir, 'output', f'{file}.txt')) as f:
             charges.update(parse_txt(f))
-    return charges, structures, formats, logs
+    
+    return charges, structures, logs
 
 
 @application.route('/', methods=['GET', 'POST'])
@@ -231,14 +219,6 @@ def get_structure():
     comp_data = request_data[comp_id]
 
     return Response(comp_data['structures'][structure_id], mimetype='text/plain')
-
-
-@application.route('/format')
-def get_format():
-    comp_id = request.args.get('r')
-    structure_id = request.args.get('s')
-    comp_data = request_data[comp_id]
-    return Response(comp_data['formats'][structure_id], mimetype='text/plain')
 
 
 @application.route('/charges')
