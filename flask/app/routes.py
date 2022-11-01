@@ -9,7 +9,7 @@ import os
 import zipfile
 from glob import glob
 
-from .files import convert_to_mmcif, prepare_file
+from .files import prepare_file
 from .method import method_data, parameter_data
 from .chargefw2 import calculate, get_suitable_methods
 from .parser import *
@@ -194,6 +194,8 @@ def download_charges():
 
     with zipfile.ZipFile(os.path.join(tmpdir, 'charges.zip'), 'w', compression=zipfile.ZIP_DEFLATED) as f:
         for file in os.listdir(os.path.join(tmpdir, 'output')):
+            if ".default.cif" in file:
+                continue
             f.write(os.path.join(tmpdir, 'output', file), arcname=file)
 
     return send_from_directory(tmpdir, 'charges.zip', as_attachment=True, download_name=f'{method}_charges.zip',
