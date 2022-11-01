@@ -160,38 +160,42 @@ function init_setup(publication_data) {
 }
 
 
-function update_litemol_colors(min_color, max_color) {
-    LiteMolChargesViewerEventQueue.send("lm-set-default-color-scheme", {
-        minVal: min_color,
-        maxVal: max_color,
-        fallbackColor: {r: 0, g: 255, b: 0},
-        minColor: {r: 255, g: 0, b: 0},
-        maxColor: {r: 0, g: 0, b: 255},
-        middleColor: {r: 255, g: 255, b: 255}
-    });
-}
+// function update_litemol_colors(min_color, max_color) {
+//     LiteMolChargesViewerEventQueue.send("lm-set-default-color-scheme", {
+//         minVal: min_color,
+//         maxVal: max_color,
+//         fallbackColor: {r: 0, g: 255, b: 0},
+//         minColor: {r: 255, g: 0, b: 0},
+//         maxColor: {r: 0, g: 0, b: 255},
+//         middleColor: {r: 255, g: 255, b: 255}
+//     });
+// }
 
 
-function init_results() {
+async function init_results() {
     const $select = $('#structure_select');
-
     let $min_value = $('#min_value');
     let $max_value = $('#max_value');
 
-    $select.on('changed.bs.select', function () {
-        const id = $select.val();
-        $.ajax({
-            url: get_format_url + `&s=${id}`,
-            success: function (format) {
-                LiteMolChargesViewerEventQueue.send("lm-load-molecule", {
-                    structure_url: get_structure_url + `&s=${id}`,
-                    charges_url: get_charges_url + `&s=${id}`,
-                    structure_format: format,
-                    charges_format: 'TXT'
-                });
-            }
-        });
+    await BasicMolStarWrapper.init('root');
 
+    $select.on('changed.bs.select', async () => {
+        const id = $select.val();
+        const url = 'http://localhost' + get_structure_url + `&s=${id}`;
+        await BasicMolStarWrapper.load({ url: url });
+        // $.ajax({
+        //     url: get_format_url + `&s=${id}`,
+        //     success: function (format) {
+        //         LiteMolChargesViewerEventQueue.send("lm-load-molecule", {
+        //             structure_url: get_structure_url + `&s=${id}`,
+        //             charges_url: get_charges_url + `&s=${id}`,
+        //             structure_format: format,
+        //             charges_format: 'TXT'
+        //         });
+        //     }
+        // });
+
+        // TODO: get charges range through molstar function
         if (chg_range.hasOwnProperty(id)) {
             $('input:radio[name=colors]').prop('disabled', false);
         } else {
@@ -210,7 +214,8 @@ function init_results() {
 
 
     $('#min_value, #max_value').on('input', function () {
-        update_litemol_colors(parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+        // update_litemol_colors(parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+        BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
         $min_value.attr('max', $max_value.val());
         $max_value.attr('min', $min_value.val());
     });
@@ -219,62 +224,67 @@ function init_results() {
     $colors.on('change', function () {
         let coloring = $('input[name=colors]:checked').val();
         if (coloring === 'Relative') {
-            LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
+            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
             const id = $select.val();
             $min_value.val(-chg_range[id]);
             $max_value.val(chg_range[id]);
-
-            update_litemol_colors(null, null);
+            
+            // update_litemol_colors(null, null);
+            BasicMolStarWrapper.coloring.applyPartialCharges(false, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
             $min_value.prop('disabled', true);
             $max_value.prop('disabled', true);
         } else if (coloring === 'Absolute') {
-            LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
+            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
+            BasicMolStarWrapper.coloring.applyPartialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
             $min_value.prop('disabled', false);
             $max_value.prop('disabled', false);
             $min_value.trigger('input');
         } else {
             /* Coloring by elements */
-            LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: true});
+            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: true});
+            BasicMolStarWrapper.coloring.applyElementSymbol();
         }
     });
 
+    // TODO: change visualization mode
     let $view = $('input[name=view]');
     $view.on('change', function () {
         let v = $('input[name=view]:checked').val();
+        alert("Not implemented!");
         if (v === 'Cartoon') {
-            LiteMolChargesViewerEventQueue.send('lm-switch-to-cartoons');
+            // LiteMolChargesViewerEventQueue.send('lm-switch-to-cartoons');
         } else if (v === 'Balls and sticks') {
-            LiteMolChargesViewerEventQueue.send('lm-switch-to-bas');
+            // LiteMolChargesViewerEventQueue.send('lm-switch-to-bas');
         } else {
             /* Surface */
-            LiteMolChargesViewerEventQueue.send('lm-switch-to-surface');
+            // LiteMolChargesViewerEventQueue.send('lm-switch-to-surface');
         }
     });
 
     $select.trigger('changed.bs.select');
     $colors.filter(':checked').trigger('change');
 
-
+    // TODO: add function to molstar for retrieving current visualization mode
     /* Change the state of a radio button to reflect view LiteMol chooses when it loads a molecule */
-    LiteMolChargesViewerEventQueue.subscribe("lm-visualization-mode-changed", (event_info) => {
-        if (event_info.mode === 'balls-and-sticks') {
-            $('input:radio[name=view][value="Balls and sticks"]').prop('checked', true);
-        } else if (event_info.mode === 'cartoons') {
-            $('input:radio[name=view][value="Cartoon"]').prop('checked', true);
-        }
-    });
+    // LiteMolChargesViewerEventQueue.subscribe("lm-visualization-mode-changed", (event_info) => {
+    //     if (event_info.mode === 'balls-and-sticks') {
+    //         $('input:radio[name=view][value="Balls and sticks"]').prop('checked', true);
+    //     } else if (event_info.mode === 'cartoons') {
+    //         $('input:radio[name=view][value="Cartoon"]').prop('checked', true);
+    //     }
+    // });
 }
 
 
 $(function () {
-    let page = window.location.pathname;
-    if (page === '/') {
+    let pathname = window.location.pathname;
+    if (pathname === '/') {
         init_index();
-    } else if (page === '/setup') {
+    } else if (pathname === '/setup') {
         $.getJSON('/static/publication_info.json', function (data) {
             init_setup(data);
         });
-    } else if (page === '/results') {
+    } else if (pathname === '/results') {
         init_results();
     }
 });

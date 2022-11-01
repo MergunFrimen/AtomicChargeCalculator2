@@ -9,7 +9,7 @@ import os
 import zipfile
 from glob import glob
 
-from .files import convert_to_mmcif, prepare_file
+from .files import prepare_file
 from .method import method_data, parameter_data
 from .chargefw2 import calculate, get_suitable_methods
 from .parser import *
@@ -18,7 +18,6 @@ request_data = {}
 
 
 def prepare_example(rq, tmp_dir):
-    print(rq.form['example-name'])
     if 'example-receptor' == rq.form['example-name']:
         filename = 'receptor.pdb'
     elif 'example-phenols' == rq.form['example-name']:
@@ -34,12 +33,11 @@ def prepare_example(rq, tmp_dir):
 
 
 def update_computation_results(method_name: str, parameters_name: str, tmp_dir: str, comp_id: str):
-    charges, structures, formats, logs = calculate_charges(
+    charges, structures, logs = calculate_charges(
         method_name, parameters_name, tmp_dir)
     request_data[comp_id].update({'method': method_name,
                                   'parameters': parameters_name,
                                   'structures': structures,
-                                  'formats': formats,
                                   'charges': charges,
                                   'logs': logs})
 
@@ -62,59 +60,41 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
 def calculate_charges(method_name, parameters_name, tmp_dir):
     structures: Dict[str, str] = {}
     charges: Dict[str, str] = {}
-    formats: Dict[str, str] = {}
     logs: Dict[str, str] = {}
 
+    # compute charges for each file in input directory
     for file in os.listdir(os.path.join(tmp_dir, 'input')):
         res = calculate(method_name, parameters_name, os.path.join(tmp_dir, 'input', file),
                         os.path.join(tmp_dir, 'output'))
 
+        stdout = res.stdout.decode('utf-8')
         stderr = res.stderr.decode('utf-8')
 
         with open(os.path.join(tmp_dir, 'logs', f'{file}.stdout'), 'w') as f_stdout:
-            f_stdout.write(res.stdout.decode('utf-8'))
-
+            f_stdout.write(stdout)
         with open(os.path.join(tmp_dir, 'logs', f'{file}.stderr'), 'w') as f_stderr:
             f_stderr.write(stderr)
 
         if stderr.strip():
             logs['stderr'] = stderr
-
         if res.returncode:
             flash('Computation failed. See logs for details.', 'error')
+    
+    # prep all charges for molstar
+    for file in os.listdir(os.path.join(tmp_dir, 'output')):
+        if file[-4:] != '.txt':
+            continue            
+        with open(os.path.join(tmp_dir, 'output', file)) as f:
+            charges.update(parse_txt(f, tmp_dir))
 
-        _, ext = os.path.splitext(file)
-        ext = ext.lower()
+    # prep all structures for molstar
+    for file in os.listdir(os.path.join(tmp_dir, 'output')):
+        if file[-12:] != ".default.cif":
+            continue
+        with open(os.path.join(tmp_dir, 'output', file)) as f:
+            structures.update(parse_cif(f))
 
-        tmp_structures: Dict[str, str] = {}
-        with open(os.path.join(tmp_dir, 'input', file)) as f:
-            if ext == '.sdf':
-                if get_MOL_versions(os.path.join(tmp_dir, 'input', file)) == {'V2000'}:
-                    tmp_structures.update(parse_sdf(f))
-                    fmt = 'SDF'
-                else:
-                    tmp_structures.update(convert_to_mmcif(f, 'sdf', file))
-                    fmt = 'mmCIF'
-            elif ext == '.mol2':
-                tmp_structures.update(convert_to_mmcif(f, 'mol2', file))
-                fmt = 'mmCIF'
-            elif ext == '.pdb':
-                tmp_structures.update(parse_pdb(f))
-                fmt = 'PDB'
-            elif ext == '.cif':
-                tmp_structures.update(parse_cif(f))
-                fmt = 'mmCIF'
-            else:
-                raise RuntimeError(f'Not supported format: {ext}')
-
-        for s in tmp_structures:
-            formats[s] = fmt
-
-        structures.update(tmp_structures)
-
-        with open(os.path.join(tmp_dir, 'output', f'{file}.txt')) as f:
-            charges.update(parse_txt(f))
-    return charges, structures, formats, logs
+    return charges, structures, logs
 
 
 @application.route('/', methods=['GET', 'POST'])
@@ -218,6 +198,8 @@ def download_charges():
 
     with zipfile.ZipFile(os.path.join(tmpdir, 'charges.zip'), 'w', compression=zipfile.ZIP_DEFLATED) as f:
         for file in os.listdir(os.path.join(tmpdir, 'output')):
+            if ".default.cif" in file:
+                continue
             f.write(os.path.join(tmpdir, 'output', file), arcname=file)
 
     return send_from_directory(tmpdir, 'charges.zip', as_attachment=True, download_name=f'{method}_charges.zip',
@@ -225,20 +207,12 @@ def download_charges():
 
 
 @application.route('/structure')
-def get_structure():
+def get_structure_url():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
     comp_data = request_data[comp_id]
 
     return Response(comp_data['structures'][structure_id], mimetype='text/plain')
-
-
-@application.route('/format')
-def get_format():
-    comp_id = request.args.get('r')
-    structure_id = request.args.get('s')
-    comp_data = request_data[comp_id]
-    return Response(comp_data['formats'][structure_id], mimetype='text/plain')
 
 
 @application.route('/charges')
