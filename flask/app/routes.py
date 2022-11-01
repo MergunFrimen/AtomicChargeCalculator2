@@ -18,7 +18,6 @@ request_data = {}
 
 
 def prepare_example(rq, tmp_dir):
-    print(rq.form['example-name'])
     if 'example-receptor' == rq.form['example-name']:
         filename = 'receptor.pdb'
     elif 'example-phenols' == rq.form['example-name']:
@@ -63,6 +62,7 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
     charges: Dict[str, str] = {}
     logs: Dict[str, str] = {}
 
+    # compute charges for each file in input directory
     for file in os.listdir(os.path.join(tmp_dir, 'input')):
         res = calculate(method_name, parameters_name, os.path.join(tmp_dir, 'input', file),
                         os.path.join(tmp_dir, 'output'))
@@ -80,28 +80,16 @@ def calculate_charges(method_name, parameters_name, tmp_dir):
         if res.returncode:
             flash('Computation failed. See logs for details.', 'error')
 
-        ext = os.path.splitext(file)[1].lower()
-
-        tmp_structures: Dict[str, str] = {}
-        with open(os.path.join(tmp_dir, 'input', file)) as f:
-            if ext == '.sdf':
-                if get_MOL_versions(os.path.join(tmp_dir, 'input', file)) == {'V2000'}:
-                    tmp_structures.update(parse_sdf(f))
-                else:
-                    tmp_structures.update(convert_to_mmcif(f, 'sdf', file))
-            elif ext == '.mol2':
-                tmp_structures.update(convert_to_mmcif(f, 'mol2', file))
-            elif ext == '.pdb':
-                tmp_structures.update(parse_pdb(f))
-            elif ext == '.cif':
-                tmp_structures.update(parse_cif(f))
-            else:
-                raise RuntimeError(f'Not supported format: {ext}')
-        structures.update(tmp_structures)
-
-        with open(os.path.join(tmp_dir, 'output', f'{file}.txt')) as f:
+        with open(os.path.join(tmp_dir, 'output', file + '.txt')) as f:
             charges.update(parse_txt(f))
     
+    # prep all structures for molstar
+    for file in os.listdir(os.path.join(tmp_dir, 'output')):
+        if ".default.cif" not in file:
+            continue
+        with open(os.path.join(tmp_dir, 'output', file)) as f:
+            structures.update(parse_cif(f))
+
     return charges, structures, logs
 
 
@@ -213,7 +201,7 @@ def download_charges():
 
 
 @application.route('/structure')
-def get_structure():
+def get_structure_url():
     comp_id = request.args.get('r')
     structure_id = request.args.get('s')
     comp_data = request_data[comp_id]

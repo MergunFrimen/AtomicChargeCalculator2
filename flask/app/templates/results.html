@@ -124,7 +124,7 @@
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 
     <script>
-        const get_structure_url = '{{ url_for("get_structure", r=comp_id) }}';
+        const get_structure_url = '{{ url_for("get_structure_url", r=comp_id) }}';
         const chg_range = JSON.parse('{{ chg_range | tojson | safe }}');
     </script>
 {% endblock scripts %}
