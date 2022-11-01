@@ -7,8 +7,6 @@ from typing import Dict, IO
 from werkzeug.utils import secure_filename
 
 
-from .parser import parse_cif_from_string
-
 ALLOWED_INPUT_EXTENSION = {'.sdf', '.mol2', '.pdb', '.cif'}
 
 
@@ -23,22 +21,6 @@ def extract(tmp_dir: str, filename: str, fmt: str):
                           os.path.join(tmp_dir, 'input'), format=fmt)
     for filename in os.listdir(os.path.join(tmp_dir, 'input')):
         check_extension(filename)
-
-
-def convert_to_mmcif(f: IO[str], fmt: str, filename: str) -> Dict[str, str]:
-    input_arg = f'-i{fmt}'
-    args = ['obabel', input_arg, '-ommcif']
-    data = f.read()
-    run = subprocess.run(args, input=data.encode(
-        'utf-8'), stdout=subprocess.PIPE)
-    output = run.stdout.decode('utf-8')
-    structures: Dict[str, str] = {}
-    delimiter = '# --------------------------------------------------------------------------'
-    # ignore empty
-    for s in filter(lambda x: x, output.split(delimiter)):
-        structures.update(parse_cif_from_string(s, filename))
-
-    return structures
 
 
 def prepare_file(rq, tmp_dir):
