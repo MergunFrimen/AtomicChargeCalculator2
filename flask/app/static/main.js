@@ -160,16 +160,47 @@ function init_setup(publication_data) {
 }
 
 
-// function update_litemol_colors(min_color, max_color) {
-//     LiteMolChargesViewerEventQueue.send("lm-set-default-color-scheme", {
-//         minVal: min_color,
-//         maxVal: max_color,
-//         fallbackColor: {r: 0, g: 255, b: 0},
-//         minColor: {r: 255, g: 0, b: 0},
-//         maxColor: {r: 0, g: 0, b: 255},
-//         middleColor: {r: 255, g: 255, b: 255}
-//     });
-// }
+const minCharge = -1, maxCharge = 1;
+let representationStyle = {
+    sequence: {
+        kind: 'cartoon',
+        coloring: 'partial-charges',
+        colorParams: { absolute: false, minCharge: minCharge, maxCharge: maxCharge } },
+    hetGroups: {
+        kind: 'ball-and-stick',
+        coloring: 'partial-charges',
+        colorParams: { absolute: false, minCharge: minCharge, maxCharge: maxCharge } },
+    water: { hide: true }
+};
+
+function changeRange(min, max) {
+    // min = parseFloat(parseFloat(min).toFixed(2));
+    // max = parseFloat(parseFloat(max).toFixed(2));
+    min = parseFloat(parseFloat(min));
+    max = parseFloat(parseFloat(max));
+    representationStyle.sequence.colorParams.minCharge = min;
+    representationStyle.hetGroups.colorParams.minCharge = min;
+    representationStyle.sequence.colorParams.maxCharge = max;
+    representationStyle.hetGroups.colorParams.maxCharge = max;
+}
+
+function absolute() {
+    representationStyle.sequence.colorParams.absolute = true;
+    representationStyle.hetGroups.colorParams.absolute = true;
+    representationStyle.sequence.coloring = 'partial-charges';
+    representationStyle.hetGroups.coloring = 'partial-charges';
+}
+
+function relative() {
+    representationStyle.sequence.colorParams.absolute = false;
+    representationStyle.hetGroups.colorParams.absolute = false;
+    representationStyle.sequence.coloring = 'partial-charges';
+    representationStyle.hetGroups.coloring = 'partial-charges';
+}
+
+function updateViewer() {
+    PluginWrapper.updateStyle({ ...representationStyle });
+}
 
 
 async function init_results() {
@@ -177,25 +208,18 @@ async function init_results() {
     let $min_value = $('#min_value');
     let $max_value = $('#max_value');
 
-    await ACC2Viewer.init('root');
+    // initialize viewer
+    await PluginWrapper.init('root');
 
-    $select.on('changed.bs.select', async () => {
+    // react to selected structure
+    $select.on('changed.bs.select', () => {
         const id = $select.val();
         const url = 'http://localhost' + get_structure_url + `&s=${id}`;
-        await ACC2Viewer.load({ url: url });
-        // $.ajax({
-        //     url: get_format_url + `&s=${id}`,
-        //     success: function (format) {
-        //         LiteMolChargesViewerEventQueue.send("lm-load-molecule", {
-        //             structure_url: get_structure_url + `&s=${id}`,
-        //             charges_url: get_charges_url + `&s=${id}`,
-        //             structure_format: format,
-        //             charges_format: 'TXT'
-        //         });
-        //     }
-        // });
+        const background = 0x000000;
 
-        // TODO: get charges range through molstar function
+        PluginWrapper.load({ url, representationStyle });
+        PluginWrapper.setBackground(background);
+
         if (chg_range.hasOwnProperty(id)) {
             $('input:radio[name=colors]').prop('disabled', false);
         } else {
@@ -212,52 +236,66 @@ async function init_results() {
         }
     });
 
+    // update absolute charges
+    $('#min_value, #max_value').on('input', () => {
+        changeRange($min_value.val(), $max_value.val());
+        console.log(representationStyle.sequence.colorParams.minCharge);
+        console.log(representationStyle.sequence.colorParams.maxCharge);
 
-    $('#min_value, #max_value').on('input', function () {
-        // update_litemol_colors(parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
-        ACC2Viewer.coloring.partialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
         $min_value.attr('max', $max_value.val());
         $max_value.attr('min', $min_value.val());
+
+        updateViewer();
     });
 
+    // change color
     let $colors = $('input[name=colors]');
-    $colors.on('change', function () {
+    $colors.on('change', () => {
         let coloring = $('input[name=colors]:checked').val();
-        if (coloring === 'Relative') {
-            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
+        
+        if (coloring === 'Relative') {    
+            relative();
+            
             const id = $select.val();
             $min_value.val(-chg_range[id]);
             $max_value.val(chg_range[id]);
-            
-            // update_litemol_colors(null, null);
-            ACC2Viewer.coloring.partialCharges(false, 0, 0);
+
             $min_value.prop('disabled', true);
             $max_value.prop('disabled', true);
+
         } else if (coloring === 'Absolute') {
-            // LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
-            // ACC2Viewer.coloring.partialCharges(true, parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
+            absolute();
+
             $min_value.prop('disabled', false);
             $max_value.prop('disabled', false);
+            // TODO: wtf does this do?
             $min_value.trigger('input');
-        } else {
-            /* Coloring by elements */
-            ACC2Viewer.coloring.default();
+
+        } else if (coloring === 'Structure') {
+            representationStyle.sequence.coloring = 'element-symbol';
+            representationStyle.hetGroups.coloring = 'element-symbol';
         }
+
+        updateViewer();
     });
 
-    // TODO: change visualization mode
+    // change structure
     let $view = $('input[name=view]');
-    $view.on('change', function () {
-        let v = $('input[name=view]:checked').val();
-        alert("Not implemented!");
-        if (v === 'Cartoon') {
-            // LiteMolChargesViewerEventQueue.send('lm-switch-to-cartoons');
-        } else if (v === 'Balls and sticks') {
-            // LiteMolChargesViewerEventQueue.send('lm-switch-to-bas');
-        } else {
-            /* Surface */
-            // LiteMolChargesViewerEventQueue.send('lm-switch-to-surface');
+    $view.on('change', () => {        
+        const repr = $('input[name=view]:checked').val();
+        
+        if (repr === 'Cartoon') {
+            representationStyle.sequence.kind = 'cartoon';
+            representationStyle.hetGroups.kind = 'ball-and-stick';
+        } else if (repr === 'Balls and sticks') {
+            representationStyle.sequence.kind = 'ball-and-stick';
+            representationStyle.hetGroups.kind = 'ball-and-stick';
+        } else if (repr === 'Surface') {
+            representationStyle.sequence.kind = 'molecular-surface';
+            representationStyle.hetGroups.kind = 'molecular-surface';
         }
+
+        updateViewer();
     });
 
     $select.trigger('changed.bs.select');
