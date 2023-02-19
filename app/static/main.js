@@ -1,10 +1,5 @@
 'use strict';
 
-
-const spinner = '<span class="spinner-border spinner-border-sm" role="status" ' +
-    'aria-hidden="true" style="animation-duration: 1.5s"></span>';
-
-
 function fill_paper($element, publication_data, doi) {
     if (doi === null) {
         $element.html('None');
@@ -51,8 +46,8 @@ function init_index() {
     });
 
     $examples.on('click', function () {
-        disable_buttons();
-        $(this).html(`${spinner} Computing...`);
+        // disable_buttons();
+        // $(this).html(`${spinner} Computing...`);
         $('#example-name').val($(this).prop('name'));
         $('form').submit();
     });
@@ -62,8 +57,8 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            disable_buttons();
-            $settings.html(`${spinner} Uploading...`);
+            // disable_buttons();
+            // $settings.html(`${spinner} Uploading...`);
             $('#type').val('settings');
             $('form').submit();
         }
@@ -171,107 +166,14 @@ function update_litemol_colors(min_color, max_color) {
     });
 }
 
-
-// function init_results() {
-//     const $select = $('#structure_select');
-
-//     let $min_value = $('#min_value');
-//     let $max_value = $('#max_value');
-
-//     $select.on('changed.bs.select', function () {
-//         const id = $select.val();
-//         $.ajax({
-//             url: get_format_url + `&s=${id}`,
-//             success: function (format) {
-//                 LiteMolChargesViewerEventQueue.send("lm-load-molecule", {
-//                     structure_url: get_structure_url + `&s=${id}`,
-//                     charges_url: get_charges_url + `&s=${id}`,
-//                     structure_format: format,
-//                     charges_format: 'TXT'
-//                 });
-//             }
-//         });
-
-//         if (chg_range.hasOwnProperty(id)) {
-//             $('input:radio[name=colors]').prop('disabled', false);
-//         } else {
-//             $('input:radio[name=colors][value="Structure"]').prop('checked', true);
-//             $('input:radio[name=colors]').prop('disabled', true);
-//             $min_value.val(0);
-//             $max_value.val(0);
-//         }
-
-//         if ($('input[name=colors]:checked').val() === 'Relative') {
-//             $min_value.val(-chg_range[id]);
-//             $max_value.val(chg_range[id]);
-//             $min_value.trigger('input');
-//         }
-//     });
-
-
-//     $('#min_value, #max_value').on('input', function () {
-//         update_litemol_colors(parseFloat($('#min_value').val()), parseFloat($('#max_value').val()));
-//         $min_value.attr('max', $max_value.val());
-//         $max_value.attr('min', $min_value.val());
-//     });
-
-//     let $colors = $('input[name=colors]');
-//     $colors.on('change', function () {
-//         let coloring = $('input[name=colors]:checked').val();
-//         if (coloring === 'Relative') {
-//             LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
-//             const id = $select.val();
-//             $min_value.val(-chg_range[id]);
-//             $max_value.val(chg_range[id]);
-
-//             update_litemol_colors(null, null);
-//             $min_value.prop('disabled', true);
-//             $max_value.prop('disabled', true);
-//         } else if (coloring === 'Absolute') {
-//             LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: false});
-//             $min_value.prop('disabled', false);
-//             $max_value.prop('disabled', false);
-//             $min_value.trigger('input');
-//         } else {
-//             /* Coloring by elements */
-//             LiteMolChargesViewerEventQueue.send('lm-use-default-themes', {value: true});
-//         }
-//     });
-
-//     let $view = $('input[name=view]');
-//     $view.on('change', function () {
-//         let v = $('input[name=view]:checked').val();
-//         if (v === 'Cartoon') {
-//             LiteMolChargesViewerEventQueue.send('lm-switch-to-cartoons');
-//         } else if (v === 'Balls and sticks') {
-//             LiteMolChargesViewerEventQueue.send('lm-switch-to-bas');
-//         } else {
-//             /* Surface */
-//             LiteMolChargesViewerEventQueue.send('lm-switch-to-surface');
-//         }
-//     });
-
-//     $select.trigger('changed.bs.select');
-//     $colors.filter(':checked').trigger('change');
-
-
-//     /* Change the state of a radio button to reflect view LiteMol chooses when it loads a molecule */
-//     LiteMolChargesViewerEventQueue.subscribe("lm-visualization-mode-changed", (event_info) => {
-//         if (event_info.mode === 'balls-and-sticks') {
-//             $('input:radio[name=view][value="Balls and sticks"]').prop('checked', true);
-//         } else if (event_info.mode === 'cartoons') {
-//             $('input:radio[name=view][value="Cartoon"]').prop('checked', true);
-//         }
-//     });
-// }
-
-// TODO: replace the old code with new one
 let molstar;
 
 function init_results() {
     (async () => {
         molstar = await MolstarPartialCharges.create("root");
-        await load(structure_url);
+        await load();
+        await updateRelativeColor();
+        mountControls();
     })().then(
         () => {},
         (error) => {
@@ -280,18 +182,38 @@ function init_results() {
     );
 }
 
-async function load(structure_url, id) {
-    await molstar.load(structure_url);
+// TODO: add function to set color and view on structure switch
+// it should keep the view and color of the previous structure
+// only initial load should set default view and color
+async function load() {
+    const selection = document.getElementById('structure_select');
+    const cartoon = document.getElementById("view_cartoon");
+    const bas = document.getElementById("view_bas");
+    if (!selection || !cartoon || !bas) return;
+    const id = selection.value;
+    const structure_url = `${get_structure_url}&s=${id}`;
 
+    await molstar.load(structure_url);
+    
     if (molstar.type.isDefaultApplicable()) {
-        const cartoon = document.getElementById("view_cartoon");
+        cartoon.removeAttribute('disabled');
+        await molstar.type.default();
+    } else {
         cartoon.setAttribute('disabled', true);
         await molstar.type.ballAndStick();
     }
+}
 
-    // updateRelativeColor();
-    // mountTypeControls();
-    // mountColorControls();
+function mountControls() {
+    mountStructureControls();
+    mountTypeControls();
+    mountColorControls();
+}
+
+function mountStructureControls() {
+    const selection = document.getElementById('structure_select');
+    if (!selection) return;
+    selection.onchange = async () => await load();
 }
 
 function mountTypeControls() {
@@ -324,12 +246,12 @@ async function updateDefaultColor() {
 }
 
 async function updateRelativeColor() {
+    const button = document.getElementById("colors_relative");
     const input = document.getElementById("max_value");
-    if (!input) return;
+    if (!button || !input) return;
     input.setAttribute("disabled", "true");
     const charge = await molstar.charges.getRelativeCharge();
     input.value = charge.toFixed(3);
-    // ? updates viewer each time the radio button is clicked ?
     await molstar.color.relative();
 }
 
@@ -345,6 +267,8 @@ async function updateRange() {
     if (!input) return;
     const value = Number(input.value);
     if (isNaN(value)) return;
+    if (value > input.max) input.value = input.max;
+    if (value < input.min) input.value = input.min;
     await molstar.color.absolute(value);
 }
 
