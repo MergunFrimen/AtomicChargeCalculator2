@@ -2,39 +2,22 @@ import os
 import subprocess
 import magic
 import shutil
-from typing import Dict, IO
 from werkzeug.utils import secure_filename
 
-
-from .parser import parse_cif_from_string
-
-ALLOWED_INPUT_EXTENSION = {'.sdf', '.mol2', '.pdb', '.cif'}
+from . import config
 
 
 def check_extension(filename: str):
-    basename, ext = os.path.splitext(filename)
-    if ext.lower() not in ALLOWED_INPUT_EXTENSION:
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in {'.sdf', '.mol2', '.pdb', '.cif'}:
         raise ValueError
 
 
 def extract(tmp_dir: str, filename: str, fmt: str):
-    shutil.unpack_archive(os.path.join(tmp_dir, filename), os.path.join(tmp_dir, 'input'), format=fmt)
+    shutil.unpack_archive(os.path.join(tmp_dir, filename),
+                          os.path.join(tmp_dir, 'input'), format=fmt)
     for filename in os.listdir(os.path.join(tmp_dir, 'input')):
         check_extension(filename)
-
-
-def convert_to_mmcif(f: IO[str], fmt: str, filename: str) -> Dict[str, str]:
-    input_arg = f'-i{fmt}'
-    args = ['obabel', input_arg, '-ommcif']
-    data = f.read()
-    run = subprocess.run(args, input=data.encode('utf-8'), stdout=subprocess.PIPE)
-    output = run.stdout.decode('utf-8')
-    structures: Dict[str, str] = {}
-    delimiter = '# --------------------------------------------------------------------------'
-    for s in (s for s in output.split(delimiter) if s):
-        structures.update(parse_cif_from_string(s, filename))
-
-    return structures
 
 
 def prepare_file(rq, tmp_dir):
@@ -47,7 +30,8 @@ def prepare_file(rq, tmp_dir):
     try:
         if filetype in ['text/plain', 'chemical/x-pdb']:
             check_extension(filename)
-            shutil.copy(os.path.join(tmp_dir, filename), os.path.join(tmp_dir, 'input'))
+            shutil.copy(os.path.join(tmp_dir, filename),
+                        os.path.join(tmp_dir, 'input'))
         elif filetype == 'application/zip':
             extract(tmp_dir, filename, 'zip')
         elif filetype == 'application/x-gzip':
@@ -63,3 +47,19 @@ def prepare_file(rq, tmp_dir):
         subprocess.run(args)
 
     return success
+
+
+def prepare_example(rq, tmp_dir):
+    example_filenames = {
+        'example-receptor': 'receptor.pdb',
+        'example-phenols': 'phenols.sdf',
+        'example-bax-inactive': '1f16_updated.cif',
+        'example-bax-activated': '2k7w_updated.cif'
+    }
+
+    filename = example_filenames.get(rq.form['example-name'])
+    if filename is None:
+        raise RuntimeError('Unknown example selected')
+
+    shutil.copy(os.path.join(config.EXAMPLES_DIR, filename),
+                os.path.join(tmp_dir, 'input', filename))
