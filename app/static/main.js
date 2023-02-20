@@ -1,5 +1,11 @@
 'use strict';
 
+
+const spinner = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="animation-duration: 1.5s">\
+                    <span class="sr-only">Loading...</span>\
+                </span>';
+
+
 function fill_paper($element, publication_data, doi) {
     if (doi === null) {
         $element.html('None');
@@ -25,6 +31,14 @@ function disable_buttons() {
 }
 
 
+// function disable_buttons() {
+//     const buttons = document.getElementsByClassName('btn');
+//     buttons.forEach((button) => {
+//         button.setAttribute('disabled', true);
+//     });
+// }
+
+
 function init_index() {
     /* Allow submit only if file is selected */
     const $input = $('#file_input');
@@ -46,8 +60,8 @@ function init_index() {
     });
 
     $examples.on('click', function () {
-        // disable_buttons();
-        // $(this).html(`${spinner} Computing...`);
+        disable_buttons();
+        $(this).html(`${spinner} Computing...`);
         $('#example-name').val($(this).prop('name'));
         $('form').submit();
     });
@@ -57,8 +71,8 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            // disable_buttons();
-            // $settings.html(`${spinner} Uploading...`);
+            disable_buttons();
+            $settings.html(`${spinner} Uploading...`);
             $('#type').val('settings');
             $('form').submit();
         }
@@ -140,11 +154,13 @@ function init_setup(publication_data) {
 
         fill_paper($('#method_paper'), publication_data, e.publication);
 
+        // TODO: fix update of citations
         $('.selectpicker').selectpicker('refresh');
     });
 
     $m_select.trigger('change');
 
+    // TODO: fix spinner not working
     const $submit = $('#calculate');
     $submit.on('click', function () {
         disable_buttons();
