@@ -154,26 +154,13 @@ function init_setup(publication_data) {
     });
 }
 
-
-function update_litemol_colors(min_color, max_color) {
-    LiteMolChargesViewerEventQueue.send("lm-set-default-color-scheme", {
-        minVal: min_color,
-        maxVal: max_color,
-        fallbackColor: {r: 0, g: 255, b: 0},
-        minColor: {r: 255, g: 0, b: 0},
-        maxColor: {r: 0, g: 0, b: 255},
-        middleColor: {r: 255, g: 255, b: 255}
-    });
-}
-
 let molstar;
 
 function init_results() {
     (async () => {
         molstar = await MolstarPartialCharges.create("root");
-        await load();
-        await updateRelativeColor();
         mountControls();
+        await load();
     })().then(
         () => {},
         (error) => {
@@ -182,26 +169,27 @@ function init_results() {
     );
 }
 
-// TODO: add function to set color and view on structure switch
-// it should keep the view and color of the previous structure
-// only initial load should set default view and color
+// TODO: add state for color and type
 async function load() {
     const selection = document.getElementById('structure_select');
     const cartoon = document.getElementById("view_cartoon");
     const bas = document.getElementById("view_bas");
-    if (!selection || !cartoon || !bas) return;
+    const relative = document.getElementById("colors_relative");
+    if (!selection || !cartoon || !bas || !relative) return;
     const id = selection.value;
     const structure_url = `${get_structure_url}&s=${id}`;
 
     await molstar.load(structure_url);
-    
+
     if (molstar.type.isDefaultApplicable()) {
         cartoon.removeAttribute('disabled');
-        await molstar.type.default();
+        cartoon.click();
     } else {
         cartoon.setAttribute('disabled', true);
-        await molstar.type.ballAndStick();
+        bas.click();
     }
+
+    relative.click();
 }
 
 function mountControls() {
@@ -246,9 +234,8 @@ async function updateDefaultColor() {
 }
 
 async function updateRelativeColor() {
-    const button = document.getElementById("colors_relative");
     const input = document.getElementById("max_value");
-    if (!button || !input) return;
+    if (!input) return;
     input.setAttribute("disabled", "true");
     const charge = await molstar.charges.getRelativeCharge();
     input.value = charge.toFixed(3);
