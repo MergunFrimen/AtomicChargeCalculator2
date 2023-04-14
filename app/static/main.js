@@ -24,19 +24,11 @@ function hide_parameters_publication(val) {
 
 
 function disable_buttons() {
-    const $buttons = $('.btn');
-    $buttons.each(function () {
-        $(this).prop('disabled', true);
-    });
+    // const buttons = document.querySelectorAll('.btn');
+    // buttons.forEach((button) => {
+    //     button.setAttribute('disabled', true);
+    // });
 }
-
-
-// function disable_buttons() {
-//     const buttons = document.getElementsByClassName('btn');
-//     buttons.forEach((button) => {
-//         button.setAttribute('disabled', true);
-//     });
-// }
 
 
 function init_index() {
@@ -60,7 +52,7 @@ function init_index() {
     });
 
     $examples.on('click', function () {
-        disable_buttons();
+        // disable_buttons();
         $(this).html(`${spinner} Computing...`);
         $('#example-name').val($(this).prop('name'));
         $('form').submit();
@@ -71,7 +63,7 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            disable_buttons();
+            // disable_buttons();
             $settings.html(`${spinner} Uploading...`);
             $('#type').val('settings');
             $('form').submit();
@@ -83,7 +75,7 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            disable_buttons();
+            // disable_buttons();
             $charges.html(`${spinner} Computing...`);
             $('#type').val('charges');
             $('form').submit();
@@ -177,6 +169,7 @@ function init_results() {
         molstar = await MolstarPartialCharges.create("root");
         mountControls();
         await load();
+        mountChargeSetControls();
     })().then(
         () => {},
         (error) => {
@@ -218,6 +211,23 @@ function mountStructureControls() {
     const selection = document.getElementById('structure_select');
     if (!selection) return;
     selection.onchange = async () => await load();
+}
+
+function mountChargeSetControls() {
+    const select = document.getElementById('charge_set_select');
+    if (!select) return;
+    const options = molstar.charges.getMethodNames();
+    for (let i = 0; i < options.length; ++i) {
+        const option = document.createElement('option');
+        option.value = `${i + 1}`;
+        option.innerText = options[i];
+        select.appendChild(option);
+    }
+    select.onchange = async () => {
+        const typeId = Number(select.value)
+        await molstar.charges.setType(typeId);
+        await updateRelativeColor();
+    }
 }
 
 function mountTypeControls() {
@@ -275,6 +285,80 @@ async function updateRange() {
     await molstar.color.absolute(value);
 }
 
+function mountAddCalculationControls() {
+    const method_selection = document.getElementById('method_selection');
+    const parameters_selection = document.getElementById('parameters_selection');
+    const button = document.getElementById('add_to_calculation');
+    const list = document.getElementById('calculation_list');
+    
+    if (!method_selection || !parameters_selection || !button || !list) {
+        console.error('Missing elements');
+        return;
+    }
+
+    button.onclick = () => {
+        const method = method_selection.value;
+        const parameters = parameters_selection.value;
+        const name = method_selection.options[method_selection.selectedIndex].text;
+        const parameters_name = parameters_selection.options[parameters_selection.selectedIndex].text;
+                
+        if (checkUniqueList(list, method, parameters)) {
+            list.appendChild(createListItem(name, parameters_name, method, parameters));
+        }
+    }
+}
+
+function checkUniqueList(list, method, parameters) {
+    for (let i = 0; i < list.children.length; ++i) {
+        const item = list.children[i];
+        if (item.dataset.method === method && item.dataset.parameters === parameters) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function checkListCount(list) {
+    return list.children.length > 0;
+}
+
+function createListItem(method_name, parameters_name, method, parameters) {
+    const item = document.createElement('li');
+    item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+    item.innerText = `${method_name} (${parameters_name})`;
+    item.dataset.method = method;
+    item.dataset.parameters = parameters;
+    console.log(method, parameters)
+    item.appendChild(createInput('calculation_item', method, parameters));
+    item.appendChild(createRemoveButton());
+
+    return item;
+}
+
+function createInput(name, method, parameters) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = `${method} ${parameters}`;
+    return input;
+}
+
+function createRemoveButton() {
+    const button = document.createElement('button');
+    button.classList.add('btn', 'btn-sm', 'p-0');
+    button.type = 'button';
+    const icon = document.createElement('i');
+    icon.classList.add('bi', 'bi-x-circle-fill');
+    button.appendChild(icon);
+
+    button.onclick = () => {
+        const item = button.parentElement;
+        item.parentElement.removeChild(item);
+    }
+    
+    return button;
+}
+
 
 $(function () {
     let page = window.location.pathname;
@@ -284,6 +368,7 @@ $(function () {
         $.getJSON('/static/publication_info.json', function (data) {
             init_setup(data);
         });
+        mountAddCalculationControls();
     } else if (page === '/results') {
         init_results();
     }

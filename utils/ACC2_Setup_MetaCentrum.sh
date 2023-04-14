@@ -20,6 +20,14 @@ sudo mkdir /home/charge/logs
 sudo mkdir -p /home/charge/www/ACC2
 
 # Install necessary packages for ACC2
+ACC2_DEPS="
+apache2
+libapache2-mod-wsgi-py3
+python3-magic
+python3-flask
+"
+# dos2unix
+# openbabel
 sudo apt-get install -y apache2 libapache2-mod-wsgi-py3
 sudo apt-get install -y python3-magic python3-flask dos2unix openbabel
 

@@ -43,10 +43,18 @@ def prepare_file(rq, tmp_dir):
 
     # Handle files from Windows
     for file in os.listdir(os.path.join(tmp_dir, 'input')):
-        args = ['dos2unix', os.path.join(tmp_dir, 'input', file)]
-        subprocess.run(args)
+        # args = ['dos2unix', os.path.join(tmp_dir, 'input', file)]
+        # subprocess.run(args)
+        with open(os.path.join(tmp_dir, 'input', file), 'r+') as f:
+            data = f.read()
+            f.seek(0)
+            f.write(dos2unix(data))
 
     return success
+
+
+def dos2unix(data):
+    return "\n".join(data.split("\r\n"))
 
 
 def prepare_example(rq, tmp_dir):

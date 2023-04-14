@@ -2,7 +2,6 @@ from flask import (
     render_template,
     flash,
     request,
-    send_from_directory,
     redirect,
     url_for,
     Response,
@@ -10,7 +9,7 @@ from flask import (
     send_file,
 )
 from . import application
-from typing import Dict
+from typing import Dict, List
 
 import tempfile
 import uuid
@@ -24,9 +23,6 @@ from .chargefw2 import calculate, get_suitable_methods
 
 
 request_data = {}
-
-
-# TODO: move these 3 methods into chargefw2.py
 
 
 def update_computation_results(
@@ -62,6 +58,7 @@ def calculate_charges_default(methods, parameters, tmp_dir, comp_id):
 def calculate_charges(method_name: str, parameters_name: str, tmp_dir: str):
     structures: Dict[str, str] = {}
     logs: Dict[str, str] = {}
+    charges: Dict[str, List[List[int]]] = {}
 
     # calculate charges for each structure in input directory
     for file in os.listdir(os.path.join(tmp_dir, "input")):
@@ -85,15 +82,19 @@ def calculate_charges(method_name: str, parameters_name: str, tmp_dir: str):
         if result.returncode != 0:
             flash("Computation failed. See logs for details.", "error")
 
-        # read output files into dictionary
-        for output_filename in os.listdir(os.path.join(tmp_dir, "output")):
-            if not output_filename.endswith(".charges.cif"):
-                continue
+    # TODO: get charges from output TXT files and read them into map (structure_name -> charges[])
+
+    # read output files into dictionary
+    for output_filename in os.listdir(os.path.join(tmp_dir, "output")):
+        if output_filename.endswith(".charges.cif"):
             structure_name = output_filename.split(".")[0].upper()
-            with open(
-                os.path.join(tmp_dir, "output", output_filename), "r"
-            ) as output_file:
+            with open(os.path.join(tmp_dir, "output", output_filename), "r") as output_file:
                 structures.update({structure_name: output_file.read()})
+        elif output_filename.endswith(".txt"):
+            with open(os.path.join(tmp_dir, "output", output_filename), "r") as output_file:
+                c = output_file.read().split('\n')
+
+    # TODO: write charges to 
 
     return structures, logs
 
@@ -106,8 +107,6 @@ def main_site():
     tmp_dir = tempfile.mkdtemp(prefix="compute_")
     for d in ["input", "output", "logs"]:
         os.mkdir(os.path.join(tmp_dir, d))
-
-    print("TEMPDIR: ", tmp_dir)
 
     if request.form["type"] in ["settings", "charges"]:
         if not prepare_file(request, tmp_dir):
@@ -142,12 +141,14 @@ def main_site():
 @application.route("/setup", methods=["GET", "POST"])
 def setup():
     comp_id = request.args.get("r")
-    if comp_id is None:
+    try:
+        comp_data = request_data[comp_id]
+    except KeyError:
         abort(404)
 
-    tmp_dir = request_data[comp_id]["tmpdir"]
-    suitable_methods = request_data[comp_id]["suitable_methods"]
-    suitable_parameters = request_data[comp_id]["suitable_parameters"]
+    tmp_dir = comp_data["tmpdir"]
+    suitable_methods = comp_data["suitable_methods"]
+    suitable_parameters = comp_data["suitable_parameters"]
 
     if request.method == "GET":
         return render_template(
@@ -157,10 +158,13 @@ def setup():
             suitable_methods=suitable_methods,
             suitable_parameters=suitable_parameters,
         )
+    
+    calculation_list = request.form.getlist("calculation_item")
 
     method_name = request.form.get("method_select")
     parameters_name = request.form.get("parameters_select")
     update_computation_results(method_name, parameters_name, tmp_dir, comp_id)
+    
     return redirect(url_for("results", r=comp_id))
 
 
@@ -198,6 +202,22 @@ def results():
         structures=comp_data["structures"].keys(),
         logs=logs,
     )
+
+
+# @application.route("/download_pdb")
+# def download_pdb():
+#     comp_id = request.args.get("r")
+#     comp_data = request_data[comp_id]
+#     tmpdir = comp_data["tmpdir"]
+#     method = comp_data["method"]
+#     structure_id = request.args.get("s")
+
+#     return send_file(
+#         os.path.join(tmpdir, "output", f"{structure_id}.pdb"),
+#         as_attachment=True,
+#         download_name=f"{method}_{structure_id}.pdb",
+#         max_age=0,
+#     )
 
 
 @application.route("/download")
