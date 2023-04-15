@@ -13,9 +13,9 @@
                     <span class="font-weight-bold">Atomic Charge Calculator <span
                             style="color: #28a745">II</span></span>
                     (ACC II) is an application for fast calculation of partial atomic charges. It features
-                    <a href="{{ url_for('static', filename='methods.pdf') }}" target="_blank">20 empirical
+                    <a href="{{ url_for('static', filename='assets/methods.pdf') }}" target="_blank">20 empirical
                         methods</a> along with parameters from literature.
-                    <a href="{{ url_for('static', filename='manual.pdf') }}" target="_blank">Short introduction</a>
+                    <a href="{{ url_for('static', filename='assets/manual.pdf') }}" target="_blank">Short introduction</a>
                     covers the basic usage of ACC II. All methods and parameters are also available in a command-line
                     <a href="https://github.com/krab1k/ChargeFW2" target="_blank" rel="noreferrer"> application</a>
                     that can be used in user workflows.
@@ -55,7 +55,7 @@
             <div class="row">
                 <div class="col-lg-4">
                     <b>Dissociating hydrogens</b><br>
-                    <img src="{{ url_for('static', filename='propofol.png') }}" alt="Dissociating hydrogens"
+                    <img src="{{ url_for('static', filename='assets/propofol.png') }}" alt="Dissociating hydrogens"
                          style="height: 200px">
                     <p><small>
                         This example focuses on acid dissociation of seven phenolic drugs, described in
@@ -65,7 +65,7 @@
                         During the acid dissociation, these compounds release a hydrogen from the phenolic OH group.
                         Using ACC II, we can examine a relation between pKa and a charge on the dissociating hydrogen.
                         We found that the higher is pKa, the lower charge the hydrogen has
-                        (see <a href="{{ url_for('static', filename='pka.pdf') }}" target="_blank" rel="noreferrer">table</a>).
+                        (see <a href="{{ url_for('static', filename='assets/pka.pdf') }}" target="_blank" rel="noreferrer">table</a>).
                         This finding agrees with results published in
                         <a href="https://pubs.acs.org/doi/full/10.1021/ci200133w" target="_blank" rel="noreferrer">literature</a>.
                     </small>
@@ -78,13 +78,13 @@
                 </div>
                 <div class="col-lg-4">
                     <b>Apoptotic protein activation</b><br>
-                    <img src="{{ url_for('static', filename='bax.png') }}" alt="BAX" style="height: 200px">
+                    <img src="{{ url_for('static', filename='assets/bax.png') }}" alt="BAX" style="height: 200px">
                     <p><small>BAX protein regulates an apoptosis process. In our example, we show inactive BAX (PDB ID
                         <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/1f16" target="_blank" rel="noreferrer">1f16</a>)
                         and activated BAX (PDB ID
                         <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/2k7w" target="_blank" rel="noreferrer">2k7w</a>).
                         The activation causes a charge redistribution that also includes C domain <a
-                                href="{{ url_for('static', filename='bax.pdf') }}" target="_blank">depolarization</a>.
+                                href="{{ url_for('static', filename='assets/bax.pdf') }}" target="_blank">depolarization</a>.
                         This depolarization causes release of the C domain, which can then penetrate mitochondrial
                         membrane and start the apoptosis as described in the
                         <a href="https://doi.org/10.1371/journal.pcbi.1002565" target="_blank" rel="noreferrer">literature</a>.
@@ -102,10 +102,10 @@
                 </div>
                 <div class="col-lg-4">
                     <b>Transmembrane protein</b><br>
-                    <img src="{{ url_for('static', filename='receptor.png') }}"
+                    <img src="{{ url_for('static', filename='assets/receptor.png') }}"
                          alt="The nicotinic acetylcholine receptor" style="height: 200px">
                     <p><small>The nicotinic acetylcholine receptor passes the cell membrane
-                        (see the <a href="{{ url_for('static', filename='receptor.pdf') }}" target="_blank"
+                        (see the <a href="{{ url_for('static', filename='assets/receptor.pdf') }}" target="_blank"
                                     rel="noreferrer">figure</a>, part A)
                         and serves as an ion channel
                         (more <a href="https://www.sciencedirect.com/science/article/abs/pii/S0022283604016018"
