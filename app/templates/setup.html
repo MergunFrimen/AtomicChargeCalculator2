@@ -28,12 +28,12 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row pt-3">
             <div class="col-12 col-md-6">
                 <div class="form-group">
                     <label class="font-weight-bold" for="method_selection">Method</label>
                     <br>
-                    <select class="form-control selectpicker" data-width="auto" name="method_select"
+                    <select class="form-control selectpicker" data-width="100%" name="method_select"
                         id="method_selection">
                         <optgroup label="3D" id="optgroup3D">
                         </optgroup>
@@ -44,9 +44,16 @@
             </div>
             <div class="col-12 col-md-6">
                 <label class="font-weight-bold">Full name</label>
-                <div id="method_name"></div>
+                <div id="method_name">
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                </div>
                 <label class="font-weight-bold">Publication</label>
-                <div id="method_paper"></div>
+                <div id="method_paper">
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                </div>
             </div>
         </div>
         <hr>
@@ -57,14 +64,19 @@
                     <small class="form-text text-muted">
                         The most suitable parameters are shown first.
                     </small>
-                    <select class="form-control selectpicker" data-width="auto" name="parameters_select"
+                    <select class="form-control selectpicker" data-width="100%" name="parameters_select"
                         id="parameters_selection">
                     </select>
                 </div>
             </div>
             <div class="col-12 col-md-6">
                 <label class="font-weight-bold" id="parameters_paper_label">Publication</label>
-                <div id="parameters_paper"></div>
+                <div id="parameters_paper">
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                    <a href="#" tabindex="-1" class="btn btn-secondary disabled placeholder-glow col-12" aria-hidden="true"></a>              
+                </div>
             </div>
         </div>
         <div class="row pt-3">
@@ -74,7 +86,7 @@
             </div>
         </div>
         <hr>
-        <div class="row">
+        <div class="row py-2">
             <div class="col col-12 col-md-7 col-lg-6 pt-3">
                 <div class="form-group">
                     <label class="font-weight-bold" for="calculation_list">Will compute the following charges:</label>
@@ -83,8 +95,7 @@
                 </div>
             </div>
         </div>
-        <hr>
-        <div class="row">
+        <div class="row pt-3">
             <div class="col-6">
                 <button type="submit" class="btn btn-success" id="calculate">Compute</button>
             </div>
