@@ -224,7 +224,8 @@ function mountStructureControls() {
 
 async function mountChargeSetControls() {
     const select = document.getElementById('charge_set_select');
-    if (!select) {
+    const relative = document.getElementById("colors_relative");
+    if (!select || !relative) {
         console.error("Charge set select not found");
         return;
     }
@@ -236,22 +237,28 @@ async function mountChargeSetControls() {
         option.selected = i + 1 === typeId;
         select.appendChild(option);
     }
-    select.onchange = async () => {
-        const options = molstar.charges.getMethodNames();
-        const method_name = document.getElementById('method_name');
-        const parameters_name = document.getElementById('parameters_name');
-        if (!options || !method_name || !parameters_name) {
-            console.error("Method or parameters name not found");
-            return;
-        }
+    setMethodAndParametersName();
 
+    select.onchange = async () => {
         typeId = Number(select.value);
         await molstar.charges.setTypeId(typeId);
-        await updateRelativeColor();
-
-        // method_name.innerText = molstar.charges.getMethodName(typeId);
-        // parameters_name.innerText = molstar.charges.getParametersName(typeId);
+        relative.click();
+        setMethodAndParametersName();
     }
+}
+
+function setMethodAndParametersName() {
+    const method_name = document.getElementById('method_name');
+    const parameters_name = document.getElementById('parameters_name');
+    const select = document.getElementById('charge_set_select');
+    if (!method_name || !parameters_name || !select) {
+        console.error("Method or parameters name not found");
+        return;
+    }
+
+    const selected_option = select.options[select.selectedIndex];
+    method_name.innerText = `Method: ${selected_option.innerText.split('/')[0]}`;
+    parameters_name.innerText = `Parameters: ${selected_option.innerText.split('/')[1]}`;
 }
 
 function mountTypeControls() {

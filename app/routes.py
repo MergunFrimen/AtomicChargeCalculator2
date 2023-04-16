@@ -19,6 +19,27 @@ from .method import method_data, parameter_data
 request_data = {}
 
 
+def get_method_name(method_name: str) -> str:
+    method_name = next(
+        method["name"]
+        for method in method_data
+        if method["internal_name"] == method_name
+    )
+    return method_name
+
+
+def get_parameters_name(method_name: str, parameters_filename: str) -> str:
+    if parameters_filename == 'NA':
+        return 'None'
+    
+    parameters_name = next(
+        parameters["name"]
+        for parameters in parameter_data[method_name]
+        if parameters["filename"] == parameters_filename
+    )
+    return parameters_name
+
+
 def prepare_calculations(calculation_list: List[str]) -> Dict[str, List[str]]:
     calculations: Dict[str, List[str]] = defaultdict(list)
     
@@ -64,21 +85,17 @@ def write_all_charges_to_mmcif_output(charges: Dict[str, Dict[Tuple[str, str], L
     
     metadata_loop = block.init_loop(partial_atomic_charges_meta_prefix, partial_atomic_charges_meta_attributes)
     
-    for typeId, (method_name, parameters_name) in enumerate(charges[output_filename]):
-        method_name = next(
-            method["name"]
-            for method in method_data
-            if method["internal_name"] == method_name
-        )
-        parameters_name = 'None' if parameters_name == 'NA' else parameters_name
+    for typeId, (method_internal_name, parameters_name) in enumerate(charges[output_filename]):
+        method_name = get_method_name(method_internal_name)
+        parameters_name = get_parameters_name(method_internal_name, parameters_name)
         metadata_loop.add_row([f"{typeId + 1}",
                                 "'empirical'",
                                 f"'{method_name}/{parameters_name}'"])
                 
     charges_loop = block.init_loop(partial_atomic_charges_prefix, partial_atomic_charges_attributes)
     
-    for typeId, (method_name, parameters_name) in enumerate(charges[output_filename]):
-        chgs = charges[output_filename][(method_name, parameters_name)]
+    for typeId, (method_internal_name, parameters_name) in enumerate(charges[output_filename]):
+        chgs = charges[output_filename][(method_internal_name, parameters_name)]
         for atomId, charge in enumerate(chgs):
             # print(typeId, atomId, charge, method_name, parameters_name)
             charges_loop.add_row([f"{typeId + 1}",
