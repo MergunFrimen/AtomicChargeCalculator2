@@ -18,7 +18,10 @@
     content="Atomic Charge Calculator II (ACC II) is an application for fast calculation of partial atomic charges.">
   <title>{% block title %} Atomic Charge Calculator II {% endblock title %}</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    integrity="sha256-+IZRbz1B6ee9mUx/ejmonK+ulIP5A5bLDd6v6NHqXnI=" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400italic,700">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
   {% block styles %}
@@ -31,10 +34,12 @@
   {% endblock body %}
 
   {% block scripts %}
-  <script src="{{ url_for('static', filename='jquery/jquery-3.4.1.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='bootstrap/bootstrap.bundle.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"
+    integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha256-GRJrh0oydT1CwS36bBeJK/2TggpaUQC6GzTaTQdZm0k=" crossorigin="anonymous"></script>
   <script src="{{ url_for('static', filename='main.js') }}"></script>
-{% endblock scripts %}
+  {% endblock scripts %}
 
 </body>
 

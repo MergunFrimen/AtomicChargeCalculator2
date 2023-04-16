@@ -361,7 +361,25 @@ function mountAddCalculationControls() {
         if (checkUniqueList(list, method, parameters)) {
             list.appendChild(createListItem(name, parameters_name, method, parameters));
         }
+        updateComputeButton();
     }
+}
+
+function updateComputeButton() {
+    const list = document.getElementById('calculation_list');
+    if (!list) {
+        console.error('Missing elements');
+        return;
+    }
+    if (isListEmpty(list)) {
+        document.getElementById('calculate').setAttribute('disabled', 'true');
+    } else {
+        document.getElementById('calculate').removeAttribute('disabled');
+    }
+}
+
+function isListEmpty(list) {
+    return list.children.length === 0;
 }
 
 function checkUniqueList(list, method, parameters) {
@@ -410,6 +428,7 @@ function createRemoveButton() {
     button.onclick = () => {
         const item = button.parentElement;
         item.parentElement.removeChild(item);
+        updateComputeButton();
     }
     
     return button;
