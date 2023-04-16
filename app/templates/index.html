@@ -25,7 +25,7 @@
 
             {% include 'base/flash.html' %}
 
-            <div class="row">
+            <div class="row pt-3">
                 <div class="col">
                     <h3>Upload structure</h3>
                     <div class="form-group">
@@ -53,43 +53,56 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-4">
-                    <b>Dissociating hydrogens</b><br>
-                    <img src="{{ url_for('static', filename='assets/propofol.png') }}" alt="Dissociating hydrogens"
-                         style="height: 200px">
-                    <p><small>
-                        This example focuses on acid dissociation of seven phenolic drugs, described in
-                        <a href="https://www.drugbank.ca/" target="_blank" rel="noreferrer">DrugBank</a>. Their
-                        structures were obtained from
-                        <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noreferrer">PubChem</a>.
-                        During the acid dissociation, these compounds release a hydrogen from the phenolic OH group.
-                        Using ACC II, we can examine a relation between pKa and a charge on the dissociating hydrogen.
-                        We found that the higher is pKa, the lower charge the hydrogen has
-                        (see <a href="{{ url_for('static', filename='assets/pka.pdf') }}" target="_blank" rel="noreferrer">table</a>).
-                        This finding agrees with results published in
-                        <a href="https://pubs.acs.org/doi/full/10.1021/ci200133w" target="_blank" rel="noreferrer">literature</a>.
-                    </small>
-                    </p>
-                    <div class="text-center">
+                <!-- Dissociating hydrogens -->
+                <div class="col-lg-4 pl-0">
+                    <div class="col">
+                        <strong>Dissociating hydrogens</strong>
+                    </div>
+                    <div class="col text-align mt-3">
+                        <img src="{{ url_for('static', filename='assets/propofol.png') }}" alt="Dissociating hydrogens"
+                        style="height: 200px">
+                    </div>
+                    <div class="col mt-3 text-justify">
+                        <small>
+                            This example focuses on acid dissociation of seven phenolic drugs, described in
+                            <a href="https://www.drugbank.ca/" target="_blank" rel="noreferrer">DrugBank</a>. Their
+                            structures were obtained from
+                            <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noreferrer">PubChem</a>.
+                            During the acid dissociation, these compounds release a hydrogen from the phenolic OH group.
+                            Using ACC II, we can examine a relation between pKa and a charge on the dissociating hydrogen.
+                            We found that the higher is pKa, the lower charge the hydrogen has
+                            (see <a href="{{ url_for('static', filename='assets/pka.pdf') }}" target="_blank" rel="noreferrer">table</a>).
+                            This finding agrees with results published in
+                            <a href="https://pubs.acs.org/doi/full/10.1021/ci200133w" target="_blank" rel="noreferrer">literature</a>.
+                        </small>
+                    </div>
+                    <div class="col text-center mt-3">
                         <button type="submit" id="example-phenols" name="example-phenols" class="btn btn-primary mb-2">
                             Phenols
                         </button>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <b>Apoptotic protein activation</b><br>
-                    <img src="{{ url_for('static', filename='assets/bax.png') }}" alt="BAX" style="height: 200px">
-                    <p><small>BAX protein regulates an apoptosis process. In our example, we show inactive BAX (PDB ID
-                        <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/1f16" target="_blank" rel="noreferrer">1f16</a>)
-                        and activated BAX (PDB ID
-                        <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/2k7w" target="_blank" rel="noreferrer">2k7w</a>).
-                        The activation causes a charge redistribution that also includes C domain <a
-                                href="{{ url_for('static', filename='assets/bax.pdf') }}" target="_blank">depolarization</a>.
-                        This depolarization causes release of the C domain, which can then penetrate mitochondrial
-                        membrane and start the apoptosis as described in the
-                        <a href="https://doi.org/10.1371/journal.pcbi.1002565" target="_blank" rel="noreferrer">literature</a>.
-                    </small></p>
-                    <div class="text-center">
+                <div class="col-lg-4 pl-0">
+                    <div class="col">
+                        <strong>Apoptotic protein activation</strong>
+                    </div>
+                    <div class="col text-align mt-3">
+                        <img src="{{ url_for('static', filename='assets/bax.png') }}" alt="BAX" style="height: 200px">
+                    </div>
+                    <div class="col mt-3 text-justify">
+                        <small>
+                            BAX protein regulates an apoptosis process. In our example, we show inactive BAX (PDB ID
+                            <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/1f16" target="_blank" rel="noreferrer">1f16</a>)
+                            and activated BAX (PDB ID
+                            <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/2k7w" target="_blank" rel="noreferrer">2k7w</a>).
+                            The activation causes a charge redistribution that also includes C domain <a
+                                    href="{{ url_for('static', filename='assets/bax.pdf') }}" target="_blank">depolarization</a>.
+                            This depolarization causes release of the C domain, which can then penetrate mitochondrial
+                            membrane and start the apoptosis as described in the
+                            <a href="https://doi.org/10.1371/journal.pcbi.1002565" target="_blank" rel="noreferrer">literature</a>.
+                        </small>
+                    </div>
+                    <div class="col text-center mt-3">
                         <button type="submit" id="example-bax-inactive" name="example-bax-inactive"
                                 class="btn btn-primary">
                             Inactive
@@ -100,31 +113,37 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <b>Transmembrane protein</b><br>
-                    <img src="{{ url_for('static', filename='assets/receptor.png') }}"
+                <div class="col-lg-4 pl-0">
+                    <div class="col">
+                        <strong>Transmembrane protein</strong>
+                    </div>
+                    <div class="col text-align mt-3">
+                        <img src="{{ url_for('static', filename='assets/receptor.png') }}"
                          alt="The nicotinic acetylcholine receptor" style="height: 200px">
-                    <p><small>The nicotinic acetylcholine receptor passes the cell membrane
-                        (see the <a href="{{ url_for('static', filename='assets/receptor.pdf') }}" target="_blank"
-                                    rel="noreferrer">figure</a>, part A)
-                        and serves as an ion channel
-                        (more <a href="https://www.sciencedirect.com/science/article/abs/pii/S0022283604016018"
-                                 target="_blank" rel="noreferrer">details</a>).
-                        We obtained its structure from Protein Data Bank Europe
-                        (PDB ID <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/2bg9" target="_blank" rel="noreferrer">2bg9</a>),
-                        added missing hydrogens via
-                        <a href="https://swift.cmbi.umcn.nl/whatif/" target="_blank" rel="noreferrer">WHAT IF</a>
-                        and calculated the partial atomic charges using ACC II with default settings. Visualization of
-                        partial charges on the surface highlights the difference between nonpolar transmembrane part
-                        (mostly white due to charge around zero) and polar surface of extracellular and cytoplasmic
-                        parts (with mosaic of blue positive and red negative charges). The
-                        <a href="{{ url_for('static', filename='receptor.pdf') }}" target="_blank" rel="noreferrer">comparison</a>
-                        demonstrates that this charge distribution agrees with receptor membrane position reported in
-                        <a href="https://www.sciencedirect.com/science/article/pii/S0022283604016018" target="_blank"
-                           rel="noreferrer">literature</a>.
-                    </small>
-                    </p>
-                    <div class="text-center">
+                    </div>
+                    <div class="col mt-3 text-justify">
+                        <small>
+                            The nicotinic acetylcholine receptor passes the cell membrane
+                            (see the <a href="{{ url_for('static', filename='assets/receptor.pdf') }}" target="_blank"
+                                        rel="noreferrer">figure</a>, part A)
+                            and serves as an ion channel
+                            (more <a href="https://www.sciencedirect.com/science/article/abs/pii/S0022283604016018"
+                                    target="_blank" rel="noreferrer">details</a>).
+                            We obtained its structure from Protein Data Bank Europe
+                            (PDB ID <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/2bg9" target="_blank" rel="noreferrer">2bg9</a>),
+                            added missing hydrogens via
+                            <a href="https://swift.cmbi.umcn.nl/whatif/" target="_blank" rel="noreferrer">WHAT IF</a>
+                            and calculated the partial atomic charges using ACC II with default settings. Visualization of
+                            partial charges on the surface highlights the difference between nonpolar transmembrane part
+                            (mostly white due to charge around zero) and polar surface of extracellular and cytoplasmic
+                            parts (with mosaic of blue positive and red negative charges). The
+                            <a href="{{ url_for('static', filename='receptor.pdf') }}" target="_blank" rel="noreferrer">comparison</a>
+                            demonstrates that this charge distribution agrees with receptor membrane position reported in
+                            <a href="https://www.sciencedirect.com/science/article/pii/S0022283604016018" target="_blank"
+                            rel="noreferrer">literature</a>.
+                        </small>
+                    </div>
+                    <div class="col text-center mt-3">
                         <button type="submit" id="example-receptor" name="example-receptor" class="btn btn-primary">
                             Receptor
                         </button>

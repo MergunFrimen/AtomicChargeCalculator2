@@ -123,7 +123,7 @@ def calculate_charges(calculations: Dict[str, List[str]], tmp_dir: str, comp_id:
                 if stderr.strip():
                     logs["stderr"] = stderr
                 if result.returncode != 0:
-                    flash("Computation failed. See logs for details.", "error")
+                    flash("Computation failed. See logs for details.", "danger")
 
                 # save charges
                 with open(os.path.join(output_dir, f"{input_filename}.txt"), "r") as f:
@@ -168,7 +168,7 @@ def main_site():
     if request.form["type"] in ["settings", "charges"]:
         if not prepare_file(request, tmp_dir):
             message = "Invalid file provided. Supported types are common chemical formats: sdf, mol2, pdb, cif and zip or tar.gz of those."
-            flash(message, "error")
+            flash(message, "warning")
             return render_template("index.html")
     elif request.form["type"] == "example":
         prepare_example(request, tmp_dir)
@@ -180,7 +180,7 @@ def main_site():
     try:
         methods, parameters = get_suitable_methods(tmp_dir)
     except RuntimeError as e:
-        flash(f"Error: {e}", "error")
+        flash(f"Error: {e}", "danger")
         return render_template("index.html")
 
     request_data[comp_id] = {
@@ -237,7 +237,7 @@ def results():
     logs = ""
     if "stderr" in comp_data["logs"]:
         logs = comp_data["logs"]["stderr"]
-        flash("Some errors occured during the computation, see log for details.")
+        flash("Some errors occured during the computation, see log for details.", "danger")
 
     return render_template(
         "results.html",
