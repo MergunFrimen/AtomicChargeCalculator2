@@ -2,8 +2,6 @@ from flask import Flask
 
 from .config import CONFIG_FILE
 
-# TODO: add init for request_data
-
 application = Flask(__name__)
 
 application.jinja_env.trim_blocks = True

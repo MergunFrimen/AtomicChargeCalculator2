@@ -3,8 +3,7 @@
 {% block title %} Atomic Charge Calculator II – Setup computation {% endblock title %}
 
 {% block styles %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-select/bootstrap-select.min.css') }}">
 {% endblock styles %}
 
 {% block body %}
@@ -13,7 +12,9 @@
     <form method=post enctype=multipart/form-data>
         <div class="row">
             <div class="col">
-                <h1 style="margin-bottom: 30px" class="font-weight-bold">Atomic Charge Calculator <span style="color: #28a745">II</span></h1>
+                <h1 style="margin-bottom: 30px">
+                    {% include 'base/acc2_logo.html' %}
+                </h1>
             </div>
         </div>
         <div class="row">
@@ -22,7 +23,8 @@
                 <div class="form-text text-muted">
                     Note that the list of methods and parameters shows only suitable combinations for given input
                     structures.
-                    See the complete <a href="{{ url_for('static', filename='assets/parameters.pdf') }}" target="_blank">list of parameters</a>.
+                    See the complete <a href="{{ url_for('static', filename='assets/parameters.pdf') }}"
+                        target="_blank">list of parameters</a>.
                 </div>
             </div>
         </div>
@@ -31,7 +33,8 @@
                 <div class="form-group">
                     <label class="font-weight-bold" for="method_selection">Method</label>
                     <br>
-                    <select class="form-control selectpicker" data-width="auto" name="method_select" id="method_selection">
+                    <select class="form-control selectpicker" data-width="auto" name="method_select"
+                        id="method_selection">
                         <optgroup label="3D" id="optgroup3D">
                         </optgroup>
                         <optgroup label="2D" id="optgroup2D">
@@ -54,7 +57,8 @@
                     <small class="form-text text-muted">
                         The most suitable parameters are shown first.
                     </small>
-                    <select class="form-control selectpicker" data-width="auto" name="parameters_select" id="parameters_selection">
+                    <select class="form-control selectpicker" data-width="auto" name="parameters_select"
+                        id="parameters_selection">
                     </select>
                 </div>
             </div>
@@ -65,7 +69,8 @@
         </div>
         <div class="row pt-3">
             <div class="col-6">
-                <button type="button" class="btn btn-outline-success" id="add_to_calculation">Add to calculation</button>
+                <button type="button" class="btn btn-outline-success" id="add_to_calculation">Add to
+                    calculation</button>
             </div>
         </div>
         <hr>
@@ -84,7 +89,8 @@
                 <button type="submit" class="btn btn-success" id="calculate">Compute</button>
             </div>
             <div class="col-6 text-right">
-                <button class="btn btn-primary" onclick="location.href='{{ url_for("main_site") }}'" type="button">Back to main page</button>
+                <button class="btn btn-primary" onclick="location.href='{{ url_for("main_site") }}'" type="button">Back
+                    to main page</button>
             </div>
         </div>
     </form>
@@ -100,13 +106,12 @@
 {% endblock body %}
 
 {% block scripts %}
-    {{ super() }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-    <script>
-        const method_data = $.parseJSON('{{ methods | tojson | safe }}');
-        const parameter_data = $.parseJSON('{{ parameters | tojson | safe }}');
-        const suitable_methods = $.parseJSON('{{ suitable_methods | tojson | safe }}');
-        const suitable_parameters = $.parseJSON('{{ suitable_parameters | tojson | safe }}');
-    </script>
+{{ super() }}
+<script src="{{ url_for('static', filename='bootstrap-select/bootstrap-select.min.js') }}"></script>
+<script>
+    const method_data = $.parseJSON('{{ methods | tojson | safe }}');
+    const parameter_data = $.parseJSON('{{ parameters | tojson | safe }}');
+    const suitable_methods = $.parseJSON('{{ suitable_methods | tojson | safe }}');
+    const suitable_parameters = $.parseJSON('{{ suitable_parameters | tojson | safe }}');
+</script>
 {% endblock scripts %}
-

@@ -8,10 +8,10 @@
             <input type="hidden" name="example-name" id="example-name" value="N/A"/>
             <div class="row">
                 <div class="col">
-                    <h1 style="margin-bottom: 30px" class="font-weight-bold">Atomic Charge Calculator
-                        <span style="color: #28a745">II</span></h1>
-                    <span class="font-weight-bold">Atomic Charge Calculator <span
-                            style="color: #28a745">II</span></span>
+                    <h1  style="margin-bottom: 30px">
+                        {% include 'base/acc2_logo.html' %}
+                    </h1>
+                    {% include 'base/acc2_logo.html' %}
                     (ACC II) is an application for fast calculation of partial atomic charges. It features
                     <a href="{{ url_for('static', filename='assets/methods.pdf') }}" target="_blank">20 empirical
                         methods</a> along with parameters from literature.
@@ -135,8 +135,9 @@
             <div class="row">
                 <div class="col">
                     <small>
-                        If you found <span class="font-weight-bold">Atomic Charge Calculator <span
-                            style="color: #28a745">II</span></span> helpful, please cite: <i>Raček, T., Schindler, O.,
+                        If you found 
+                        {% include 'base/acc2_logo.html' %}
+                        helpful, please cite: <i>Raček, T., Schindler, O.,
                         Toušek, D., Horský, V.,
                         Berka, K., Koča, J., & Svobodová, R.
                         (2020). <a href="https://doi.org/10.1093/nar/gkaa367" target="_blank" rel="noreferrer">Atomic

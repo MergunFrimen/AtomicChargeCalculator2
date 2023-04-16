@@ -1,15 +1,17 @@
 import os
-import subprocess
-import magic
 import shutil
+
+import magic
 from werkzeug.utils import secure_filename
 
 from . import config
 
+ALLOWED_INPUT_EXTENSION = ['.sdf', '.mol2', '.pdb', '.cif']
+
 
 def check_extension(filename: str):
     extension = os.path.splitext(filename)[1].lower()
-    if extension not in {'.sdf', '.mol2', '.pdb', '.cif'}:
+    if extension not in ALLOWED_INPUT_EXTENSION:
         raise ValueError
 
 
@@ -30,8 +32,7 @@ def prepare_file(rq, tmp_dir):
     try:
         if filetype in ['text/plain', 'chemical/x-pdb']:
             check_extension(filename)
-            shutil.copy(os.path.join(tmp_dir, filename),
-                        os.path.join(tmp_dir, 'input'))
+            shutil.copy(os.path.join(tmp_dir, filename), os.path.join(tmp_dir, 'input'))
         elif filetype == 'application/zip':
             extract(tmp_dir, filename, 'zip')
         elif filetype == 'application/x-gzip':

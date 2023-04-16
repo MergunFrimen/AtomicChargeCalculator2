@@ -24,10 +24,10 @@ function hide_parameters_publication(val) {
 
 
 function disable_buttons() {
-    // const buttons = document.querySelectorAll('.btn');
-    // buttons.forEach((button) => {
-    //     button.setAttribute('disabled', true);
-    // });
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach((button) => {
+        button.setAttribute('disabled', true);
+    });
 }
 
 
@@ -163,13 +163,15 @@ function init_setup(publication_data) {
 }
 
 let molstar;
+let typeId = 1;
 
 function init_results() {
     (async () => {
         molstar = await MolstarPartialCharges.create("root");
         mountControls();
         await load();
-        mountChargeSetControls();
+        // doesn't work before load
+        await mountChargeSetControls();
     })().then(
         () => {},
         (error) => {
@@ -184,11 +186,15 @@ async function load() {
     const cartoon = document.getElementById("view_cartoon");
     const bas = document.getElementById("view_bas");
     const relative = document.getElementById("colors_relative");
-    if (!selection || !cartoon || !bas || !relative) return;
+    if (!selection || !cartoon || !bas || !relative) {
+        console.error("Controls not found");
+        return;
+    }
     const id = selection.value;
     const structure_url = `${get_structure_url}&s=${id}`;
 
     await molstar.load(structure_url);
+    await molstar.charges.setTypeId(typeId);
 
     if (molstar.type.isDefaultApplicable()) {
         cartoon.removeAttribute('disabled');
@@ -209,24 +215,42 @@ function mountControls() {
 
 function mountStructureControls() {
     const selection = document.getElementById('structure_select');
-    if (!selection) return;
+    if (!selection) {
+        console.error("Structure select not found");
+        return;
+    }
     selection.onchange = async () => await load();
 }
 
-function mountChargeSetControls() {
+async function mountChargeSetControls() {
     const select = document.getElementById('charge_set_select');
-    if (!select) return;
+    if (!select) {
+        console.error("Charge set select not found");
+        return;
+    }
     const options = molstar.charges.getMethodNames();
     for (let i = 0; i < options.length; ++i) {
         const option = document.createElement('option');
         option.value = `${i + 1}`;
         option.innerText = options[i];
+        option.selected = i + 1 === typeId;
         select.appendChild(option);
     }
     select.onchange = async () => {
-        const typeId = Number(select.value)
-        await molstar.charges.setType(typeId);
+        const options = molstar.charges.getMethodNames();
+        const method_name = document.getElementById('method_name');
+        const parameters_name = document.getElementById('parameters_name');
+        if (!options || !method_name || !parameters_name) {
+            console.error("Method or parameters name not found");
+            return;
+        }
+
+        typeId = Number(select.value);
+        await molstar.charges.setTypeId(typeId);
         await updateRelativeColor();
+
+        // method_name.innerText = molstar.charges.getMethodName(typeId);
+        // parameters_name.innerText = molstar.charges.getParametersName(typeId);
     }
 }
 
@@ -234,7 +258,10 @@ function mountTypeControls() {
     const cartoon = document.getElementById("view_cartoon");
     const surface = document.getElementById("view_surface");
     const bas = document.getElementById("view_bas");
-    if (!cartoon || !surface || !bas) return;
+    if (!cartoon || !surface || !bas) {
+        console.error("Type controls not found");
+        return;
+    }
     cartoon.onclick = async () => await molstar.type.default();
     surface.onclick = async () => await molstar.type.surface();
     bas.onclick = async () => await molstar.type.ballAndStick();
@@ -245,7 +272,10 @@ function mountColorControls() {
     const relative = document.getElementById("colors_relative");
     const absolute = document.getElementById("colors_absolute");
     const range = document.getElementById("max_value");
-    if (!structure || !relative || !absolute) return;
+    if (!structure || !relative || !absolute) {
+        console.error("Color controls not found");
+        return;
+    }
     structure.onclick = async () => await updateDefaultColor();
     relative.onclick = async () => await updateRelativeColor();
     absolute.onclick = async () => await updateAbsoluteColor();
@@ -254,14 +284,20 @@ function mountColorControls() {
 
 async function updateDefaultColor() {
     const input = document.getElementById("max_value");
-    if (!input) return;
+    if (!input) {
+        console.error("Max value input not found");
+        return;
+    }
     input.setAttribute("disabled", "true");
     await molstar.color.default();
 }
 
 async function updateRelativeColor() {
     const input = document.getElementById("max_value");
-    if (!input) return;
+    if (!input) {
+        console.error("Max value input not found");
+        return;
+    }
     input.setAttribute("disabled", "true");
     const charge = await molstar.charges.getRelativeCharge();
     input.value = charge.toFixed(3);
@@ -270,14 +306,20 @@ async function updateRelativeColor() {
 
 async function updateAbsoluteColor() {
     const input = document.getElementById("max_value");
-    if (!input) return;
+    if (!input) {
+        console.error("Max value input not found");
+        return;
+    }
     input.removeAttribute("disabled");
     await molstar.color.relative();
 }
 
 async function updateRange() {
     const input = document.getElementById("max_value");
-    if (!input) return;
+    if (!input) {
+        console.error("Max value input not found");
+        return;
+    }
     const value = Number(input.value);
     if (isNaN(value)) return;
     if (value > input.max) input.value = input.max;
