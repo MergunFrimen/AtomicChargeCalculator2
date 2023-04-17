@@ -48,11 +48,6 @@ CHARGEFW2_DEPENDENCIES="
   tao-pegtl-dev
 "
 
-# Install packages needed for building ChargeFW2
-sudo apt-get install -y git g++ cmake libnanoflann-dev gemmi-dev tao-pegtl-dev
-sudo apt-get install -y nlohmann-json3-dev libfmt-dev libeigen3-dev python3-dev
-sudo apt-get install -y libboost-filesystem-dev libboost-system-dev libboost-program-options-dev pybind11-dev
-
 # upgrade packages and install dependencies
 sudo apt update && sudo apt -y upgrade
 sudo apt -y ${ACC2_DEPENDENCIES} ${CHARGEFW2_DEPENDENCIES}
