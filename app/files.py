@@ -5,6 +5,8 @@ import subprocess
 import magic
 from werkzeug.utils import secure_filename
 
+from . import config
+
 ALLOWED_INPUT_EXTENSION = ['.sdf', '.mol2', '.pdb', '.cif']
 
 
