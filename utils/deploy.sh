@@ -9,6 +9,7 @@ install_chargefw2() {
   nproc=$(($(grep -c processor /proc/cpuinfo) + 1))
 
   cd || exit 1
+  sudo rm -rf ChargeFW2
   git clone https://github.com/MergunFrimen/ChargeFW2.git ChargeFW2
   cd ChargeFW2 || exit 1
   mkdir build && cd build || exit 1
@@ -19,6 +20,7 @@ install_chargefw2() {
 
 install_acc2() {
   cd || exit 1
+  sudo rm -rf ACC2
   git clone https://github.com/MergunFrimen/AtomicChargeCalculator2.git ACC2
   sudo cp -r ACC2/app/* /home/charge/www/ACC2
 }
@@ -42,7 +44,7 @@ CHARGEFW2_DEPENDENCIES="
   libboost-system-dev
   libeigen3-dev
   libfmt-dev
-  libstb-dev \
+  libstb-dev
   nlohmann-json3-dev
   python3-dev
   pybind11-dev
