@@ -53,7 +53,7 @@ CHARGEFW2_DEPENDENCIES="
 
 # upgrade packages and install dependencies
 sudo apt update && sudo apt -y upgrade
-sudo apt -y ${ACC2_DEPENDENCIES} ${CHARGEFW2_DEPENDENCIES}
+sudo apt install -y ${ACC2_DEPENDENCIES} ${CHARGEFW2_DEPENDENCIES}
 
 # create directories
 sudo mkdir -p /home/charge/{chargefw2,logs,www/ACC2,.ssh}
