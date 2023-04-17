@@ -434,6 +434,21 @@ function createRemoveButton() {
     return button;
 }
 
+function setupExampleDefaults() {
+    const surface = document.getElementById("view_surface");
+    const structure_select = document.getElementById("structure_select");
+    
+    if (!surface || !structure_select) {
+        console.error("Missing elements");
+        return;
+    }
+
+    if (example_name === 'example-receptor') {
+        surface.click()
+    } else if (example_name === 'example-phenols') {
+        structure_select.value = 'PROPOFOL'
+    }
+}
 
 $(function () {
     let page = window.location.pathname;
@@ -446,5 +461,6 @@ $(function () {
         mountAddCalculationControls();
     } else if (page === '/results') {
         init_results();
+        setupExampleDefaults()
     }
 });

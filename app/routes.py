@@ -209,7 +209,7 @@ def main_site():
     # calculate charges with default method and parameters
     if request.form["type"] in ["charges", "example"]:
         calculate_charges_default(methods, parameters, tmp_dir, comp_id)
-        return redirect(url_for("results", r=comp_id))
+        return redirect(url_for("results", r=comp_id, example_name=request.form['example-name']))
 
     return redirect(url_for("setup", r=comp_id))
 
@@ -246,6 +246,7 @@ def setup():
 @application.route("/results")
 def results():
     comp_id = request.args.get("r")
+    example_name = request.args.get("example_name")
     try:
         comp_data = request_data[comp_id]
     except KeyError:
@@ -259,6 +260,7 @@ def results():
     return render_template(
         "results.html",
         comp_id=comp_id,
+        example_name=example_name,
         structures=comp_data["structures"].keys(),
         logs=logs,
     )
