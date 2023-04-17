@@ -54,7 +54,7 @@ function init_index() {
     });
 
     $examples.on('click', function () {
-        // disable_buttons();
+        disable_buttons();
         $(this).html(`${spinner} Computing...`);
         $('#example-name').val($(this).prop('name'));
         $('form').submit();
@@ -65,7 +65,7 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            // disable_buttons();
+            disable_buttons();
             $settings.html(`${spinner} Uploading...`);
             $('#type').val('settings');
             $('form').submit();
@@ -77,7 +77,7 @@ function init_index() {
             alert('Cannot upload file larger than 10 MB');
             e.preventDefault();
         } else {
-            // disable_buttons();
+            disable_buttons();
             $charges.html(`${spinner} Computing...`);
             $('#type').val('charges');
             $('form').submit();
