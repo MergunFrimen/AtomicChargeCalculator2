@@ -42,6 +42,7 @@ CHARGEFW2_DEPENDENCIES="
   libboost-system-dev
   libeigen3-dev
   libfmt-dev
+  libstb-dev \
   nlohmann-json3-dev
   python3-dev
   pybind11-dev
