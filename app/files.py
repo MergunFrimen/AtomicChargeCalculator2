@@ -1,10 +1,9 @@
 import os
 import shutil
+import subprocess
 
 import magic
 from werkzeug.utils import secure_filename
-
-from . import config
 
 ALLOWED_INPUT_EXTENSION = ['.sdf', '.mol2', '.pdb', '.cif']
 
@@ -44,12 +43,8 @@ def prepare_file(rq, tmp_dir):
 
     # Handle files from Windows
     for file in os.listdir(os.path.join(tmp_dir, 'input')):
-        # args = ['dos2unix', os.path.join(tmp_dir, 'input', file)]
-        # subprocess.run(args)
-        with open(os.path.join(tmp_dir, 'input', file), 'r+') as f:
-            data = f.read()
-            f.seek(0)
-            f.write(dos2unix(data))
+        args = ['dos2unix', os.path.join(tmp_dir, 'input', file)]
+        subprocess.run(args)
 
     return success
 

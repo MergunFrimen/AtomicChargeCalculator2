@@ -27,9 +27,9 @@ ACC2_DEPENDENCIES="
   apache2
   dos2unix
   libapache2-mod-wsgi-py3
-  openbabel
   python3-flask
   python3-magic
+  python3-gemmi
 "
 CHARGEFW2_DEPENDENCIES="
   cmake
